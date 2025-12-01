@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Flux Academy - Encomende Trabalhos Académicos</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Flux Academy</h1>
+    <div class="navbar">
+      <a href="/">Cliente</a>
+      <a href="/admin.html">Admin</a>
+    </div>
+  </header>
+  <section class="hero">
+    <h2>Entrega premium de trabalhos académicos em alta velocidade</h2>
+    <p><strong>Marketing agressivo:</strong> Garantia de qualidade, autores especialistas e suporte nonstop. Faça o seu pedido agora e assegure aprovação com preço calculado automaticamente.</p>
+    <div class="hero-grid">
+      <div class="pill">🔥 SLA acelerado 24h para pedidos críticos</div>
+      <div class="pill">💎 Revisões ilimitadas até aprovação</div>
+      <div class="pill">🔒 Pagamentos M-Pesa totalmente guiados</div>
+      <div class="pill">📢 Copy orientada a conversão e urgência</div>
+    </div>
+  </section>
+  <section class="proof">
+    <div>
+      <h3>Fluxo agressivo de conversão</h3>
+      <ul>
+        <li>Calculadora de preço em tempo real com fatores de urgência e complexidade.</li>
+        <li>Prova social: clientes aprovados em mestrado e doutoramento.</li>
+        <li>CTA duplo: criar conta e iniciar encomenda sem fricção.</li>
+      </ul>
+    </div>
+    <div class="cta-box">
+      <p>Preço de lançamento exclusivo para novos clientes.</p>
+      <p><strong>Pague via M-Pesa nº 851619970, titular Maria António Chicavele.</strong></p>
+      <a class="btn" href="#dashboard">Iniciar encomenda</a>
+    </div>
+  </section>
+  <div class="container">
+    <div class="card">
+      <h3>Registo</h3>
+      <form id="signup-form">
+        <label>Nome</label>
+        <input type="text" name="name" required />
+        <label>Email</label>
+        <input type="email" name="email" required />
+        <label>Password</label>
+        <input type="password" name="password" required />
+        <button type="submit">Criar conta</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Login</h3>
+      <form id="signin-form">
+        <label>Email</label>
+        <input type="email" name="email" required />
+        <label>Password</label>
+        <input type="password" name="password" required />
+        <button type="submit">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <section id="dashboard" class="container">
+    <div class="card" style="width:720px;">
+      <h3>Nova Encomenda</h3>
+      <form id="order-form">
+        <label>Tipo de trabalho</label>
+        <input name="workType" required />
+        <label>Área científica</label>
+        <input name="area" required />
+        <label>Nível académico</label>
+        <select name="academicLevel">
+          <option value="tecnico">Técnico</option>
+          <option value="licenciatura">Licenciatura</option>
+          <option value="mestrado">Mestrado</option>
+          <option value="doutoramento">Doutoramento</option>
+        </select>
+        <label>Número de páginas</label>
+        <input type="number" name="pages" min="1" required />
+        <label>Norma de formatação</label>
+        <input name="formatting" required />
+        <label>Complexidade</label>
+        <select name="complexity">
+          <option value="basica">Básica</option>
+          <option value="intermedia">Intermédia</option>
+          <option value="avancada">Avançada</option>
+        </select>
+        <label>Urgência</label>
+        <select name="urgency">
+          <option value="normal">Normal</option>
+          <option value="72h">72h</option>
+          <option value="48h">48h</option>
+          <option value="24h">24h</option>
+        </select>
+        <label>Prazo desejado</label>
+        <input type="date" name="deliveryDeadline" />
+        <label>Descrição detalhada</label>
+        <textarea name="description" rows="3"></textarea>
+        <button type="submit">Calcular e Encomendar</button>
+      </form>
+      <div id="quote-preview" class="quote"></div>
+    </div>
+    <div class="card" style="width:720px;">
+      <h3>As minhas encomendas</h3>
+      <div id="orders-list" class="list"></div>
+    </div>
+  </section>
+
+  <section id="order-details" class="container">
+    <div class="card" style="width:720px;">
+      <h3>Resumo da encomenda</h3>
+      <div id="order-info"></div>
+      <div id="invoice-info" class="invoice-box"></div>
+      <form id="proof-form" enctype="multipart/form-data">
+        <label>Enviar comprovativo de pagamento (jpg, png, pdf)</label>
+        <input type="file" name="proof" />
+        <button type="submit">Submeter comprovativo</button>
+      </form>
+      <div id="final-download"></div>
+      <div id="status-history" class="timeline"></div>
+      <button id="back-button" type="button">Voltar</button>
+    </div>
+  </section>
+
+  <section class="grid-panels">
+    <div>
+      <h3>Segmentos atendidos</h3>
+      <p>Relatórios técnicos, teses, monografias, planos de negócios, artigos científicos e preparação para conferências.</p>
+    </div>
+    <div>
+      <h3>Velocidade + rigor</h3>
+      <p>Equipe especializada por área científica, revisão dupla e entrega controlada por prazos de pagamento.</p>
+    </div>
+    <div>
+      <h3>Garantia total</h3>
+      <p>Se o pagamento for validado, acompanhamos até a entrega final com histórico completo de estados e provas.</p>
+    </div>
+  </section>
+
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel Admin - Flux Academy</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Admin Flux Academy</h1>
+    <div class="navbar">
+      <a href="/">Voltar ao site</a>
+    </div>
+  </header>
+  <section class="hero">
+    <h2>Controle total: valide pagamentos e liberte downloads</h2>
+    <p>Comunicação direta e marketing agressivo: pressione a urgência, valide comprovativos e entregue trabalhos finalizados.</p>
+  </section>
+
+  <div class="container">
+    <div class="card">
+      <h3>Login de administrador</h3>
+      <form id="admin-login">
+        <label>Email</label>
+        <input type="email" name="email" required />
+        <label>Password</label>
+        <input type="password" name="password" required />
+        <button type="submit">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <section id="admin-panel" class="container" style="display:none;">
+    <div class="card" style="width:760px;">
+      <h3>Encomendas pendentes</h3>
+      <div id="admin-stats" class="hero-grid"></div>
+      <div id="admin-orders" class="list"></div>
+    </div>
+    <div class="card" style="width:760px;">
+      <h3>Detalhes</h3>
+      <div id="admin-detail"></div>
+      <form id="final-work-form" enctype="multipart/form-data">
+        <label>Subir ficheiro final (.pdf, .docx)</label>
+        <input type="file" name="finalWork" />
+        <button type="submit">Enviar trabalho final</button>
+      </form>
+    </div>
+  </section>
+
+  <script src="admin.js"></script>
+</body>
+</html>
