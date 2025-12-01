@@ -2,7 +2,15 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { auth } = require('../middleware/auth');
-const { createOrder, getOrders, getOrderById, uploadProof, downloadFinal, quotePrice } = require('../controllers/orderController');
+const {
+  createOrder,
+  getOrders,
+  getOrderById,
+  uploadProof,
+  downloadFinal,
+  quotePrice,
+  downloadInvoicePdf,
+} = require('../controllers/orderController');
 
 const router = express.Router();
 
@@ -32,5 +40,6 @@ router.post('/quote', auth, quotePrice);
 router.get('/:id', auth, getOrderById);
 router.post('/:id/upload-proof', auth, proofUpload.single('proof'), uploadProof);
 router.get('/:id/download-work', auth, downloadFinal);
+router.get('/:id/invoice/pdf', auth, downloadInvoicePdf);
 
 module.exports = router;

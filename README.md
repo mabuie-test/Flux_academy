@@ -43,6 +43,7 @@ npm start
 - Uploads protegidos com limites (5MB comprovativos, 15MB trabalhos finais) e formatos validados (pdf/jpg/png para comprovativos; pdf/doc/docx para trabalhos).
 - Emails automáticos cobrem criação/alteração de faturas, recuperação de senha por token, entrega final, pedidos especiais e disparo em massa pelo admin.
 - Pedidos especiais de TCC e projetos práticos com faturação manual e trilha de auditoria.
+- Página dedicada de faturas com link de download em PDF e atalhos rápidos a partir do painel do cliente.
 
 ## Fluxo principal
 1. Cliente regista/login.

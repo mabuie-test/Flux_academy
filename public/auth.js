@@ -1,8 +1,24 @@
 const apiBase = '/api';
+let authToken = localStorage.getItem('token') || '';
+
+function toggleNav() {
+  document.querySelectorAll('.anon-only').forEach((el) => (el.style.display = authToken ? 'none' : 'inline-flex'));
+  document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
+  const logout = document.getElementById('logout');
+  if (logout) {
+    logout.addEventListener('click', () => {
+      authToken = '';
+      localStorage.removeItem('token');
+      toggleNav();
+    });
+  }
+}
 
 function handleLogin(token) {
   if (token) {
+    authToken = token;
     localStorage.setItem('token', token);
+    toggleNav();
     alert('Autenticado! Pode continuar a usar o painel.');
   }
 }
@@ -74,3 +90,5 @@ if (resetForm) {
     alert(data.message || (res.ok ? 'Senha atualizada' : 'Erro ao atualizar senha'));
   });
 }
+
+toggleNav();

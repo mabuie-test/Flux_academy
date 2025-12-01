@@ -3,16 +3,23 @@ let authToken = localStorage.getItem('token') || '';
 let currentOrder = null;
 let currentQuote = null;
 
+function updateNav() {
+  document.querySelectorAll('.anon-only').forEach((el) => (el.style.display = authToken ? 'none' : 'inline-flex'));
+  document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
+}
+
 function clearSession() {
   authToken = '';
   localStorage.removeItem('token');
   showDashboard(false);
   showOrderDetails(false);
+  updateNav();
 }
 
 function setAuth(token) {
   authToken = token;
   if (token) localStorage.setItem('token', token);
+  updateNav();
 }
 
 function safeToggle(id, show) {
@@ -107,6 +114,8 @@ async function loadOrders() {
   }
   const list = document.getElementById('orders-list');
   list.innerHTML = '';
+  const invoiceList = document.getElementById('invoice-list');
+  if (invoiceList) invoiceList.innerHTML = '';
   data.orders.forEach((order) => {
     const invoice = data.invoices.find((i) => i.order === order._id) || {};
     const div = document.createElement('div');
@@ -114,10 +123,29 @@ async function loadOrders() {
       <p><strong>${order.workType}</strong> - ${order.area} <span class="badge">${order.status}</span></p>
       <p>Preço: ${order.priceBreakdown.total} | Prazo pagamento: ${new Date(order.paymentDeadline).toLocaleString()}</p>
       <p>Fatura: #${invoice.invoiceNumber || 'N/A'} (${invoice.status || 'EMITIDA'})</p>
-      <button data-id="${order._id}">Ver detalhes</button>
+      <div class="stacked-actions">
+        <button data-id="${order._id}" class="primary">Ver detalhes</button>
+        <a class="ghost" href="/invoice.html?id=${order._id}">Abrir fatura</a>
+      </div>
     `;
     div.querySelector('button').addEventListener('click', () => viewOrder(order._id));
     list.appendChild(div);
+
+    if (invoiceList && invoice.invoiceNumber) {
+      const invEl = document.createElement('div');
+      invEl.innerHTML = `
+        <p><strong>Fatura #${invoice.invoiceNumber}</strong> - ${invoice.status}</p>
+        <p>Total: ${invoice.amount} | Prazo: ${new Date(invoice.dueDate).toLocaleString()}</p>
+        <div class="stacked-actions">
+          <a class="ghost" href="/invoice.html?id=${order._id}">Ver fatura</a>
+          <button type="button" data-id="${order._id}" class="secondary">Baixar PDF</button>
+        </div>
+      `;
+      invEl.querySelector('button').addEventListener('click', () => {
+        window.open(`${apiBase}/orders/${order._id}/invoice/pdf`, '_blank');
+      });
+      invoiceList.appendChild(invEl);
+    }
   });
 }
 
@@ -149,7 +177,18 @@ function renderOrderDetails() {
     <p>Pagamento via M-Pesa: <strong>Número 851619970</strong> | Titular <strong>Maria António Chicavele</strong></p>
     <p>Data limite: ${new Date(invoice.dueDate).toLocaleString()}</p>
     <p>Base por página ${invoice.priceFactors.basePerPage} | Nível ${invoice.priceFactors.levelFactor} | Complexidade ${invoice.priceFactors.complexityFactor} | Urgência ${invoice.priceFactors.urgencyFactor}</p>
+    <div class="stacked-actions">
+      <a class="ghost" href="/invoice.html?id=${order._id}">Abrir página da fatura</a>
+      <button type="button" id="download-invoice">Baixar PDF</button>
+    </div>
   `;
+
+  const invoiceBtn = document.getElementById('download-invoice');
+  if (invoiceBtn) {
+    invoiceBtn.addEventListener('click', () => {
+      window.open(`${apiBase}/orders/${order._id}/invoice/pdf`, '_blank');
+    });
+  }
 
   const downloadZone = document.getElementById('final-download');
   if (order.status === 'CONCLUIDA' && invoice.status === 'PAGA' && order.finalFile) {
@@ -211,6 +250,8 @@ backBtn.addEventListener('click', () => {
   showDashboard(true);
   loadOrders();
 });
+
+updateNav();
 
 if (authToken) {
   showDashboard(true);

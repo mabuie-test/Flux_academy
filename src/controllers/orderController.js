@@ -1,4 +1,5 @@
 const path = require('path');
+const PDFDocument = require('pdfkit');
 const Order = require('../models/Order');
 const Invoice = require('../models/Invoice');
 const User = require('../models/User');
@@ -195,5 +196,41 @@ exports.downloadFinal = async (req, res) => {
     res.download(filePath);
   } catch (err) {
     res.status(500).json({ message: 'Erro ao descarregar trabalho', error: err.message });
+  }
+};
+
+exports.downloadInvoicePdf = async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
+    if (!order) return res.status(404).json({ message: 'Encomenda não encontrada' });
+    const invoice = await Invoice.findOne({ order: order._id });
+    if (!invoice) return res.status(404).json({ message: 'Fatura não encontrada' });
+
+    const doc = new PDFDocument({ margin: 40 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=fatura-${invoice.invoiceNumber}.pdf`);
+    doc.pipe(res);
+
+    doc.fontSize(18).text(`Fatura #${invoice.invoiceNumber}`, { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`Serviço: ${invoice.summary}`);
+    doc.text(`Cliente: ${req.user.name || req.user.email}`);
+    doc.text(`Valor: ${invoice.amount}`);
+    doc.text(`Estado: ${invoice.status}`);
+    doc.text(`Vencimento: ${new Date(invoice.dueDate).toLocaleString()}`);
+    doc.moveDown();
+    doc.text('Detalhes de preço:');
+    doc.text(`Base por página: ${invoice.priceFactors.basePerPage}`);
+    doc.text(`Fator nível: ${invoice.priceFactors.levelFactor}`);
+    doc.text(`Fator complexidade: ${invoice.priceFactors.complexityFactor}`);
+    doc.text(`Fator urgência: ${invoice.priceFactors.urgencyFactor}`);
+    doc.moveDown();
+    doc.text('Pagamento via M-Pesa:');
+    doc.text('Número: 851619970');
+    doc.text('Titular: Maria António Chicavele');
+    doc.text('Após pagamento, submeta o comprovativo na plataforma.');
+    doc.end();
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao gerar PDF', error: err.message });
   }
 };

@@ -162,6 +162,28 @@ button:hover { background: #ff3c2f; }
   cursor: pointer;
   font-weight: bold;
 }
+.service-menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 0 auto;
+  max-width: 1280px;
+  padding: 0 20px 10px;
+}
+
+.service-menu button {
+  background: #0a8754;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.service-menu button:hover {
+  opacity: 0.9;
+}
 .quote {
   margin-top: 10px;
   background: #0f172a;
@@ -237,6 +259,10 @@ body.auth-page {
 }
 
 .stacked { display: flex; flex-direction: column; gap: 12px; }
+.stacked-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.invoice-page .container { margin-top: 20px; }
+.split { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.split .actions { display: flex; gap: 8px; }
 
 @media (max-width: 720px) {
   header {
@@ -258,4 +284,5 @@ body.auth-page {
   .proof { flex-direction: column; align-items: flex-start; }
   .btn { width: 100%; text-align: center; }
   .navbar .ghost { width: 100%; text-align: center; }
+  .split { flex-direction: column; align-items: flex-start; }
 }
