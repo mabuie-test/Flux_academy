@@ -19,7 +19,7 @@ function handleLogin(token) {
     authToken = token;
     localStorage.setItem('token', token);
     toggleNav();
-    alert('Autenticado! Pode continuar a usar o painel.');
+    window.location.href = '/';
   }
 }
 
@@ -92,3 +92,7 @@ if (resetForm) {
 }
 
 toggleNav();
+
+if (authToken) {
+  window.location.href = '/';
+}

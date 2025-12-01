@@ -46,9 +46,7 @@ function renderInvoice(order, invoice) {
     ${order.finalFile ? `<p>Trabalho final: disponível após pagamento.</p>` : ''}
   `;
   const downloadPdf = document.getElementById('download-pdf');
-  downloadPdf.addEventListener('click', () => {
-    window.open(`${apiBase}/orders/${order._id}/invoice/pdf`, '_blank');
-  });
+  downloadPdf.addEventListener('click', () => downloadInvoicePdf(order._id, invoice.invoiceNumber));
 }
 
 const backBtn = document.getElementById('back-dashboard');
@@ -56,3 +54,26 @@ if (backBtn) backBtn.addEventListener('click', () => window.history.back());
 
 ensureAuth();
 if (orderId) loadInvoice();
+
+async function downloadInvoicePdf(orderId, invoiceNumber) {
+  try {
+    const res = await fetch(`${apiBase}/orders/${orderId}/invoice/pdf`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      return alert(data.message || 'Erro ao gerar PDF');
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fatura-${invoiceNumber || orderId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Falha ao descarregar fatura');
+  }
+}

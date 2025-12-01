@@ -55,9 +55,10 @@ document.getElementById('order-form').addEventListener('submit', async (e) => {
   const data = await res.json();
   if (res.ok) {
     alert('Encomenda criada. Confira a fatura e pague via M-Pesa!');
-    loadOrders();
+    e.target.reset();
     currentQuote = null;
     renderQuote();
+    window.location.href = `/invoice.html?id=${data.order._id}`;
   } else {
     alert(data.message || 'Erro ao criar encomenda');
   }
@@ -142,7 +143,7 @@ async function loadOrders() {
         </div>
       `;
       invEl.querySelector('button').addEventListener('click', () => {
-        window.open(`${apiBase}/orders/${order._id}/invoice/pdf`, '_blank');
+        downloadInvoicePdf(order._id, invoice.invoiceNumber);
       });
       invoiceList.appendChild(invEl);
     }
@@ -186,7 +187,7 @@ function renderOrderDetails() {
   const invoiceBtn = document.getElementById('download-invoice');
   if (invoiceBtn) {
     invoiceBtn.addEventListener('click', () => {
-      window.open(`${apiBase}/orders/${order._id}/invoice/pdf`, '_blank');
+      downloadInvoicePdf(order._id, invoice.invoiceNumber);
     });
   }
 
@@ -292,3 +293,26 @@ function attachServiceForm(formId, type) {
 
 attachServiceForm('tcc-form', 'TCC');
 attachServiceForm('special-form', 'PRATICA');
+
+async function downloadInvoicePdf(orderId, invoiceNumber) {
+  try {
+    const res = await fetch(`${apiBase}/orders/${orderId}/invoice/pdf`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      return alert(data.message || 'Não foi possível gerar o PDF');
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fatura-${invoiceNumber || orderId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Erro ao baixar PDF da fatura');
+  }
+}

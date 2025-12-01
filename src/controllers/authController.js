@@ -52,7 +52,7 @@ exports.requestReset = async (req, res) => {
       html: passwordResetTemplate(token),
     });
     await logAudit({ user: user._id, role: user.role, action: 'PEDIDO_RESET', entityType: 'User', entityId: user._id.toString() });
-    res.json({ message: 'Token enviado para o email' });
+    res.json({ message: 'Token enviado para o email. Caso não visualize em alguns minutos, verifique spam ou contacte o suporte.' });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao solicitar reset', error: err.message });
   }
