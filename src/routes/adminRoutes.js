@@ -23,7 +23,19 @@ const workStorage = multer.diskStorage({
   },
 });
 
-const workUpload = multer({ storage: workStorage });
+const workUpload = multer({
+  storage: workStorage,
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ];
+    if (!allowed.includes(file.mimetype)) return cb(new Error('Envie apenas pdf/doc/docx.'));
+    cb(null, true);
+  },
+});
 
 router.get('/orders', auth, isAdmin, listOrders);
 router.get('/orders/:id', auth, isAdmin, getOrderDetail);

@@ -16,7 +16,15 @@ const proofStorage = multer.diskStorage({
   },
 });
 
-const proofUpload = multer({ storage: proofStorage });
+const proofUpload = multer({
+  storage: proofStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!allowed.includes(file.mimetype)) return cb(new Error('Formato inválido. Use pdf/jpg/png.'));
+    cb(null, true);
+  },
+});
 
 router.post('/', auth, createOrder);
 router.get('/', auth, getOrders);

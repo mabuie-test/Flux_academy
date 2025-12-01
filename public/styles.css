@@ -146,6 +146,16 @@ button:hover { background: #ff3c2f; }
   text-decoration: none;
   font-weight: bold;
 }
+.navbar .ghost {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
 .quote {
   margin-top: 10px;
   background: #0f172a;

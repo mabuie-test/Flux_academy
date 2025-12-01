@@ -27,6 +27,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 
+app.use((err, req, res, next) => {
+  if (err instanceof Error && err.message) {
+    return res.status(400).json({ message: err.message });
+  }
+  return res.status(500).json({ message: 'Erro interno' });
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });

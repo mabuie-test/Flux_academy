@@ -35,6 +35,7 @@ npm start
 - `public/` – frontend HTML/CSS/JS simples para cliente e admin.
 - `uploads/` – comprovativos e trabalhos finais enviados via multer.
 - `/api/orders/quote` – endpoint para simular preços em tempo real.
+- Uploads protegidos com limites (5MB comprovativos, 15MB trabalhos finais) e formatos validados (pdf/jpg/png para comprovativos; pdf/doc/docx para trabalhos).
 
 ## Fluxo principal
 1. Cliente regista/login.

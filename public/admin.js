@@ -1,5 +1,5 @@
 const apiBase = '/api';
-let token = '';
+let token = localStorage.getItem('adminToken') || '';
 let selectedOrder = null;
 let dashboardData = null;
 
@@ -14,11 +14,19 @@ document.getElementById('admin-login').addEventListener('submit', async (e) => {
   const data = await res.json();
   if (data.token && data.user.role === 'admin') {
     token = data.token;
+    localStorage.setItem('adminToken', token);
     document.getElementById('admin-panel').style.display = 'flex';
     loadAdminOrders();
   } else {
     alert('Credenciais inválidas ou não é admin');
   }
+});
+
+document.getElementById('admin-logout').addEventListener('click', () => {
+  token = '';
+  localStorage.removeItem('adminToken');
+  document.getElementById('admin-panel').style.display = 'none';
+  alert('Sessão de administrador terminada.');
 });
 
 async function loadAdminOrders() {
@@ -119,6 +127,10 @@ function renderStats() {
     <div class="pill">Total: ${total}</div>
     <div class="pill">Em validação: ${awaiting}</div>
     <div class="pill">Em execução: ${executing}</div>
+    <div class="pill">Faturas pagas: ${dashboardData.invoices.filter((i) => i.status === 'PAGA').length}</div>
+    <div class="pill">Receita confirmada: ${dashboardData.invoices
+      .filter((i) => i.status === 'PAGA')
+      .reduce((sum, i) => sum + (i.amount || 0), 0)}</div>
   `;
 }
 
@@ -142,3 +154,8 @@ finalWorkForm.addEventListener('submit', async (e) => {
     alert(data.message || 'Erro ao subir ficheiro');
   }
 });
+
+if (token) {
+  document.getElementById('admin-panel').style.display = 'flex';
+  loadAdminOrders();
+}

@@ -3,6 +3,13 @@ let authToken = localStorage.getItem('token') || '';
 let currentOrder = null;
 let currentQuote = null;
 
+function clearSession() {
+  authToken = '';
+  localStorage.removeItem('token');
+  showDashboard(false);
+  showOrderDetails(false);
+}
+
 function setAuth(token) {
   authToken = token;
   if (token) localStorage.setItem('token', token);
@@ -15,6 +22,11 @@ function showDashboard(show) {
 function showOrderDetails(show) {
   document.getElementById('order-details').style.display = show ? 'flex' : 'none';
 }
+
+document.getElementById('logout').addEventListener('click', () => {
+  clearSession();
+  alert('Sessão terminada. Faça login novamente para continuar.');
+});
 
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
