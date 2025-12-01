@@ -1,5 +1,9 @@
 const Order = require('../models/Order');
 const Invoice = require('../models/Invoice');
+const User = require('../models/User');
+const ServiceRequest = require('../models/ServiceRequest');
+const { sendMail, invoiceEmailTemplate } = require('../utils/mailer');
+const { logAudit } = require('../utils/audit');
 
 function addOrderHistory(order, status, note) {
   order.statusHistory.push({ status, note, changedAt: new Date() });
@@ -7,6 +11,17 @@ function addOrderHistory(order, status, note) {
 
 function addInvoiceHistory(invoice, status, note) {
   invoice.statusHistory.push({ status, note, changedAt: new Date() });
+}
+
+async function notifyInvoice(invoice, order, label) {
+  const user = await User.findById(order.user);
+  if (user) {
+    await sendMail({
+      to: user.email,
+      subject: `Atualização da fatura #${invoice.invoiceNumber}`,
+      html: invoiceEmailTemplate(invoice, order, label),
+    });
+  }
 }
 
 exports.listOrders = async (req, res) => {
@@ -52,6 +67,14 @@ exports.validatePayment = async (req, res) => {
 
     await invoice.save();
     await order.save();
+    await notifyInvoice(invoice, order, 'Pagamento validado');
+    await logAudit({
+      user: req.user._id,
+      role: req.user.role,
+      action: 'VALIDAR_PAGAMENTO',
+      entityType: 'Order',
+      entityId: order._id.toString(),
+    });
     res.json({ message: 'Pagamento validado', order, invoice });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao validar pagamento', error: err.message });
@@ -73,6 +96,15 @@ exports.rejectPayment = async (req, res) => {
 
     await invoice.save();
     await order.save();
+    await notifyInvoice(invoice, order, 'Pagamento rejeitado');
+    await logAudit({
+      user: req.user._id,
+      role: req.user.role,
+      action: 'REJEITAR_PAGAMENTO',
+      entityType: 'Order',
+      entityId: order._id.toString(),
+      metadata: { reason: invoice.rejectionReason },
+    });
     res.json({ message: 'Pagamento rejeitado; aguardando novo comprovativo', order, invoice });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao rejeitar pagamento', error: err.message });
@@ -94,6 +126,13 @@ exports.uploadFinalWork = async (req, res) => {
     order.status = 'CONCLUIDA';
     addOrderHistory(order, 'CONCLUIDA', 'Trabalho final anexado para o cliente');
     await order.save();
+    await logAudit({
+      user: req.user._id,
+      role: req.user.role,
+      action: 'UPLOAD_TRABALHO_FINAL',
+      entityType: 'Order',
+      entityId: order._id.toString(),
+    });
     res.json({ message: 'Trabalho final carregado', order });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao subir trabalho final', error: err.message });
@@ -117,9 +156,87 @@ exports.expireInvoice = async (req, res) => {
     addOrderHistory(order, 'CANCELADA', 'Pedido cancelado por falta de pagamento');
     await invoice.save();
     await order.save();
+    await notifyInvoice(invoice, order, 'Fatura expirada');
+    await logAudit({
+      user: req.user._id,
+      role: req.user.role,
+      action: 'EXPIRAR_FATURA',
+      entityType: 'Order',
+      entityId: order._id.toString(),
+    });
 
     res.json({ message: 'Estado de expiração avaliado', order, invoice });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao marcar expiração', error: err.message });
+  }
+};
+
+exports.listServiceRequests = async (req, res) => {
+  try {
+    const requests = await ServiceRequest.find().populate('user');
+    res.json({ requests });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao listar pedidos especiais', error: err.message });
+  }
+};
+
+exports.updateServiceRequest = async (req, res) => {
+  try {
+    const request = await ServiceRequest.findById(req.params.id).populate('user');
+    if (!request) return res.status(404).json({ message: 'Pedido não encontrado' });
+    const { status, invoiceAmount, invoiceNote, adminNotes } = req.body;
+    if (status) request.status = status;
+    if (invoiceAmount) request.invoiceAmount = invoiceAmount;
+    if (invoiceNote) request.invoiceNote = invoiceNote;
+    if (adminNotes) request.adminNotes = adminNotes;
+    if (status === 'FATURA_ENVIADA') request.invoiceSentAt = new Date();
+    await request.save();
+
+    if (status === 'FATURA_ENVIADA') {
+      await sendMail({
+        to: request.contactEmail,
+        subject: 'Fatura personalizada - pedido especial',
+        html: `<p>Segue o orçamento final: <strong>${invoiceAmount || ''}</strong></p><p>${invoiceNote || ''}</p>`,
+      });
+    }
+
+    await logAudit({
+      user: req.user._id,
+      role: req.user.role,
+      action: 'ATUALIZAR_PEDIDO_ESPECIAL',
+      entityType: 'ServiceRequest',
+      entityId: request._id.toString(),
+      metadata: { status, invoiceAmount },
+    });
+
+    res.json({ request });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao atualizar pedido especial', error: err.message });
+  }
+};
+
+exports.broadcastEmail = async (req, res) => {
+  try {
+    const { subject, message } = req.body;
+    const users = await User.find();
+    await Promise.all(
+      users.map((u) =>
+        sendMail({
+          to: u.email,
+          subject: subject || 'Aviso administrativo Flux Academy',
+          html: message || 'Comunicação geral do administrador.',
+        })
+      )
+    );
+    await logAudit({
+      user: req.user._id,
+      role: req.user.role,
+      action: 'BROADCAST_EMAIL',
+      entityType: 'User',
+      entityId: 'all',
+    });
+    res.json({ message: 'Emails enviados' });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao enviar emails', error: err.message });
   }
 };

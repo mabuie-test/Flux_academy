@@ -8,6 +8,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const serviceRoutes = require('./routes/serviceRoutes');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/uploads/trabalhos', express.static(path.join(__dirname, '../uploads/tr
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/services', serviceRoutes);
 
 app.use((err, req, res, next) => {
   if (err instanceof Error && err.message) {

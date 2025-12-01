@@ -15,56 +15,26 @@ function setAuth(token) {
   if (token) localStorage.setItem('token', token);
 }
 
+function safeToggle(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = show ? 'flex' : 'none';
+}
+
 function showDashboard(show) {
-  document.getElementById('dashboard').style.display = show ? 'flex' : 'none';
+  safeToggle('dashboard', show);
 }
 
 function showOrderDetails(show) {
-  document.getElementById('order-details').style.display = show ? 'flex' : 'none';
+  safeToggle('order-details', show);
 }
 
-document.getElementById('logout').addEventListener('click', () => {
-  clearSession();
-  alert('Sessão terminada. Faça login novamente para continuar.');
-});
-
-document.getElementById('signup-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const formData = Object.fromEntries(new FormData(e.target).entries());
-  const res = await fetch(`${apiBase}/auth/signup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(formData),
+const logoutBtn = document.getElementById('logout');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', () => {
+    clearSession();
+    alert('Sessão terminada. Faça login novamente para continuar.');
   });
-  const data = await res.json();
-  if (data.token) {
-    setAuth(data.token);
-    showDashboard(true);
-    loadOrders();
-    simulatePrice();
-  } else {
-    alert(data.message || 'Erro no registo');
-  }
-});
-
-document.getElementById('signin-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const formData = Object.fromEntries(new FormData(e.target).entries());
-  const res = await fetch(`${apiBase}/auth/signin`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(formData),
-  });
-  const data = await res.json();
-  if (data.token) {
-    setAuth(data.token);
-    showDashboard(true);
-    loadOrders();
-    simulatePrice();
-  } else {
-    alert(data.message || 'Erro no login');
-  }
-});
+}
 
 document.getElementById('order-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -214,24 +184,26 @@ function renderTimelines(order, invoice) {
 }
 
 const proofForm = document.getElementById('proof-form');
-proofForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if (!currentOrder) return;
-  const formData = new FormData(proofForm);
-  const res = await fetch(`${apiBase}/orders/${currentOrder.order._id}/upload-proof`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${authToken}` },
-    body: formData,
+if (proofForm) {
+  proofForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentOrder) return;
+    const formData = new FormData(proofForm);
+    const res = await fetch(`${apiBase}/orders/${currentOrder.order._id}/upload-proof`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${authToken}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('Comprovativo submetido. Aguarde validação.');
+      currentOrder = data;
+      renderOrderDetails();
+    } else {
+      alert(data.message || 'Erro ao enviar comprovativo');
+    }
   });
-  const data = await res.json();
-  if (res.ok) {
-    alert('Comprovativo submetido. Aguarde validação.');
-    currentOrder = data;
-    renderOrderDetails();
-  } else {
-    alert(data.message || 'Erro ao enviar comprovativo');
-  }
-});
+}
 
 const backBtn = document.getElementById('back-button');
 backBtn.addEventListener('click', () => {
@@ -250,3 +222,32 @@ if (authToken) {
   const el = document.querySelector(`[name="${field}"]`);
   if (el) el.addEventListener('change', simulatePrice);
 });
+
+function attachServiceForm(formId, type) {
+  const form = document.getElementById(formId);
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!authToken) {
+      alert('Faça login para enviar o pedido.');
+      return;
+    }
+    const payload = Object.fromEntries(new FormData(form).entries());
+    payload.type = type;
+    const res = await fetch(`${apiBase}/services`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('Pedido registado. Enviámos confirmação por email.');
+      form.reset();
+    } else {
+      alert(data.message || 'Erro ao submeter pedido');
+    }
+  });
+}
+
+attachServiceForm('tcc-form', 'TCC');
+attachServiceForm('special-form', 'PRATICA');

@@ -1,7 +1,10 @@
 const path = require('path');
 const Order = require('../models/Order');
 const Invoice = require('../models/Invoice');
+const User = require('../models/User');
 const { calculatePrice } = require('../utils/pricing');
+const { sendMail, invoiceEmailTemplate } = require('../utils/mailer');
+const { logAudit } = require('../utils/audit');
 
 const ALLOWED_LEVELS = ['tecnico', 'licenciatura', 'mestrado', 'doutoramento'];
 const ALLOWED_COMPLEXITIES = ['basica', 'intermedia', 'avancada'];
@@ -23,6 +26,17 @@ function validatePayload({ workType, area, academicLevel, pages, formatting, com
   const pageNum = Number(pages);
   if (Number.isNaN(pageNum) || pageNum < 1) return 'Número de páginas inválido';
   return null;
+}
+
+async function notifyInvoice(invoice, order, label) {
+  const user = await User.findById(order.user);
+  if (user) {
+    await sendMail({
+      to: user.email,
+      subject: `Atualização da fatura #${invoice.invoiceNumber}`,
+      html: invoiceEmailTemplate(invoice, order, label),
+    });
+  }
 }
 
 exports.createOrder = async (req, res) => {
@@ -74,6 +88,15 @@ exports.createOrder = async (req, res) => {
         urgencyFactor: priceBreakdown.urgencyFactor,
       },
       statusHistory: [{ status: 'EMITIDA', note: 'Fatura criada automaticamente', changedAt: new Date() }],
+    });
+    await notifyInvoice(invoice, order, 'Fatura emitida');
+    await logAudit({
+      user: req.user._id,
+      role: req.user.role,
+      action: 'CRIACAO_ENCOMENDA',
+      entityType: 'Order',
+      entityId: order._id.toString(),
+      metadata: { invoice: invoice.invoiceNumber },
     });
 
     res.status(201).json({ order, invoice });
@@ -143,6 +166,15 @@ exports.uploadProof = async (req, res) => {
 
     await invoice.save();
     await order.save();
+    await notifyInvoice(invoice, order, 'Comprovativo submetido');
+    await logAudit({
+      user: req.user._id,
+      role: req.user.role,
+      action: 'UPLOAD_COMPROVATIVO',
+      entityType: 'Invoice',
+      entityId: invoice._id.toString(),
+      metadata: { file: invoice.proofFile },
+    });
 
     res.json({ message: 'Comprovativo enviado', order, invoice });
   } catch (err) {

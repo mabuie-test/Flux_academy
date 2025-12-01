@@ -2,6 +2,7 @@ const apiBase = '/api';
 let token = localStorage.getItem('adminToken') || '';
 let selectedOrder = null;
 let dashboardData = null;
+let serviceRequests = [];
 
 document.getElementById('admin-login').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -48,6 +49,15 @@ async function loadAdminOrders() {
     div.querySelector('button').addEventListener('click', () => openOrder(order._id));
     container.appendChild(div);
   });
+}
+
+async function loadServices() {
+  const res = await fetch(`${apiBase}/admin/services`, { headers: { Authorization: `Bearer ${token}` } });
+  const data = await res.json();
+  if (res.ok) {
+    serviceRequests = data.requests || [];
+    renderServices();
+  }
 }
 
 async function openOrder(id) {
@@ -134,6 +144,48 @@ function renderStats() {
   `;
 }
 
+function renderServices() {
+  const zone = document.getElementById('admin-services');
+  if (!zone) return;
+  zone.innerHTML = '';
+  serviceRequests.forEach((r) => {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <p><strong>${r.type}</strong> - ${r.contactName} (${r.contactEmail}) <span class="badge">${r.status}</span></p>
+      <p>${r.details}</p>
+      <label>Valor fatura</label><input type="number" data-field="amount" value="${r.invoiceAmount || ''}" />
+      <label>Nota</label><input data-field="note" value="${r.invoiceNote || ''}" />
+      <select data-field="status">
+        <option value="RECEBIDO" ${r.status === 'RECEBIDO' ? 'selected' : ''}>Recebido</option>
+        <option value="EM_ANALISE" ${r.status === 'EM_ANALISE' ? 'selected' : ''}>Em análise</option>
+        <option value="FATURA_ENVIADA" ${r.status === 'FATURA_ENVIADA' ? 'selected' : ''}>Fatura enviada</option>
+        <option value="FECHADO" ${r.status === 'FECHADO' ? 'selected' : ''}>Fechado</option>
+      </select>
+      <button data-id="${r._id}">Atualizar</button>
+    `;
+    div.querySelector('button').addEventListener('click', () => updateService(div, r._id));
+    zone.appendChild(div);
+  });
+}
+
+async function updateService(container, id) {
+  const status = container.querySelector('[data-field="status"]').value;
+  const invoiceAmount = Number(container.querySelector('[data-field="amount"]').value || 0);
+  const invoiceNote = container.querySelector('[data-field="note"]').value;
+  const res = await fetch(`${apiBase}/admin/services/${id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ status, invoiceAmount, invoiceNote }),
+  });
+  const data = await res.json();
+  if (res.ok) {
+    alert('Pedido atualizado');
+    loadServices();
+  } else {
+    alert(data.message || 'Erro ao atualizar pedido');
+  }
+}
+
 const finalWorkForm = document.getElementById('final-work-form');
 finalWorkForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -158,4 +210,20 @@ finalWorkForm.addEventListener('submit', async (e) => {
 if (token) {
   document.getElementById('admin-panel').style.display = 'flex';
   loadAdminOrders();
+  loadServices();
+}
+
+const broadcastForm = document.getElementById('broadcast-form');
+if (broadcastForm) {
+  broadcastForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = Object.fromEntries(new FormData(broadcastForm).entries());
+    const res = await fetch(`${apiBase}/admin/broadcast`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    alert(data.message || (res.ok ? 'Emails enviados' : 'Erro ao enviar emails'));
+  });
 }

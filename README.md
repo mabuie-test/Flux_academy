@@ -12,6 +12,11 @@ Plataforma Node.js + MongoDB para encomenda de trabalhos académicos com cálcul
 PORT=4000
 MONGODB_URI=sua_string_atlas
 JWT_SECRET=chave_segura
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM="Flux Academy <no-reply@flux.academy>"
 ```
 2. Instale dependências:
 ```
@@ -36,6 +41,8 @@ npm start
 - `uploads/` – comprovativos e trabalhos finais enviados via multer.
 - `/api/orders/quote` – endpoint para simular preços em tempo real.
 - Uploads protegidos com limites (5MB comprovativos, 15MB trabalhos finais) e formatos validados (pdf/jpg/png para comprovativos; pdf/doc/docx para trabalhos).
+- Emails automáticos em mudanças de estado de fatura e criação, recuperação de senha por token e disparo em massa pelo admin.
+- Pedidos especiais de TCC e projetos práticos com faturação manual e trilha de auditoria.
 
 ## Fluxo principal
 1. Cliente regista/login.

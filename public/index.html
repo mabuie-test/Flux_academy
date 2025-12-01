@@ -2,6 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flux Academy - Encomende Trabalhos Académicos</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -9,69 +10,48 @@
   <header>
     <h1>Flux Academy</h1>
     <div class="navbar">
-      <a href="/">Cliente</a>
+      <a href="/login.html">Login</a>
+      <a href="/register.html">Registo</a>
       <a href="/admin.html">Admin</a>
       <button id="logout" class="ghost">Terminar sessão</button>
     </div>
   </header>
   <section class="hero">
     <h2>Entrega premium de trabalhos académicos em alta velocidade</h2>
-    <p><strong>Marketing agressivo:</strong> Garantia de qualidade, autores especialistas e suporte nonstop. Faça o seu pedido agora e assegure aprovação com preço calculado automaticamente.</p>
+    <p><strong>Marketing agressivo:</strong> Conversão máxima com CTA imediato, preço automático e orientação de especialistas.</p>
     <div class="hero-grid">
       <div class="pill">🔥 SLA acelerado 24h para pedidos críticos</div>
       <div class="pill">💎 Revisões ilimitadas até aprovação</div>
-      <div class="pill">🔒 Pagamentos M-Pesa totalmente guiados</div>
+      <div class="pill">🔒 Pagamentos M-Pesa guiados e auditados</div>
       <div class="pill">📢 Copy orientada a conversão e urgência</div>
-    </div>
-  </section>
-  <section class="proof">
-    <div>
-      <h3>Fluxo agressivo de conversão</h3>
-      <ul>
-        <li>Calculadora de preço em tempo real com fatores de urgência e complexidade.</li>
-        <li>Prova social: clientes aprovados em mestrado e doutoramento.</li>
-        <li>CTA duplo: criar conta e iniciar encomenda sem fricção.</li>
-      </ul>
     </div>
     <div class="cta-box">
       <p>Preço de lançamento exclusivo para novos clientes.</p>
       <p><strong>Pague via M-Pesa nº 851619970, titular Maria António Chicavele.</strong></p>
-      <a class="btn" href="#dashboard">Iniciar encomenda</a>
+      <div class="cta-links"><a class="btn" href="/login.html">Já tenho conta</a><a class="btn ghost" href="/register.html">Criar conta</a></div>
     </div>
   </section>
-  <div class="container">
-    <div class="card">
-      <h3>Registo</h3>
-      <form id="signup-form">
-        <label>Nome</label>
-        <input type="text" name="name" required />
-        <label>Email</label>
-        <input type="email" name="email" required />
-        <label>Password</label>
-        <input type="password" name="password" required />
-        <button type="submit">Criar conta</button>
-      </form>
-    </div>
-    <div class="card">
-      <h3>Login</h3>
-      <form id="signin-form">
-        <label>Email</label>
-        <input type="email" name="email" required />
-        <label>Password</label>
-        <input type="password" name="password" required />
-        <button type="submit">Entrar</button>
-      </form>
-    </div>
-  </div>
 
-  <section id="dashboard" class="container">
-    <div class="card" style="width:720px;">
+  <section class="container cards-grid">
+    <div class="card wide">
       <h3>Nova Encomenda</h3>
+      <p class="muted">Faça login e mantenha o formulário ativo: mesmo autenticado pode continuar a simular e enviar pedidos.</p>
       <form id="order-form">
         <label>Tipo de trabalho</label>
-        <input name="workType" required />
+        <select name="workType" required>
+          <option value="artigo">Artigo académico</option>
+          <option value="relatorio">Relatório técnico</option>
+          <option value="monografia">Monografia</option>
+          <option value="tese">Tese</option>
+        </select>
         <label>Área científica</label>
-        <input name="area" required />
+        <select name="area" required>
+          <option value="engenharia">Engenharia</option>
+          <option value="gestao">Gestão</option>
+          <option value="saude">Saúde</option>
+          <option value="direito">Direito</option>
+          <option value="outra">Outra</option>
+        </select>
         <label>Nível académico</label>
         <select name="academicLevel">
           <option value="tecnico">Técnico</option>
@@ -82,7 +62,12 @@
         <label>Número de páginas</label>
         <input type="number" name="pages" min="1" required />
         <label>Norma de formatação</label>
-        <input name="formatting" required />
+        <select name="formatting">
+          <option value="APA">APA</option>
+          <option value="ABNT">ABNT</option>
+          <option value="MLA">MLA</option>
+          <option value="OUTRA">Outra</option>
+        </select>
         <label>Complexidade</label>
         <select name="complexity">
           <option value="basica">Básica</option>
@@ -104,14 +89,14 @@
       </form>
       <div id="quote-preview" class="quote"></div>
     </div>
-    <div class="card" style="width:720px;">
+    <div class="card wide">
       <h3>As minhas encomendas</h3>
       <div id="orders-list" class="list"></div>
     </div>
   </section>
 
-  <section id="order-details" class="container">
-    <div class="card" style="width:720px;">
+  <section id="order-details" class="container" style="display:none;">
+    <div class="card wide">
       <h3>Resumo da encomenda</h3>
       <div id="order-info"></div>
       <div id="invoice-info" class="invoice-box"></div>
@@ -126,6 +111,33 @@
     </div>
   </section>
 
+  <section class="container cards-grid">
+    <div class="card">
+      <h3>Acompanhamento de TCC</h3>
+      <p>Orientação na escolha de tema, consultoria, ajuda, correção e formatação.</p>
+      <form id="tcc-form">
+        <label>Nome</label><input name="contactName" required />
+        <label>Email</label><input type="email" name="contactEmail" required />
+        <label>Telefone</label><input name="contactPhone" />
+        <label>Objetivos</label><input name="goals" />
+        <label>Detalhes do projeto</label><textarea name="details" rows="3" required></textarea>
+        <button type="submit">Pedir acompanhamento</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Encomendas especiais (eletrónica, programação, electricidade)</h3>
+      <p>Projetos práticos com análise e fatura após acerto com o cliente.</p>
+      <form id="special-form">
+        <label>Nome</label><input name="contactName" required />
+        <label>Email</label><input type="email" name="contactEmail" required />
+        <label>Telefone</label><input name="contactPhone" />
+        <label>Detalhes do trabalho</label><textarea name="details" rows="3" required></textarea>
+        <label>Resultados esperados</label><input name="goals" />
+        <button type="submit">Submeter pedido especial</button>
+      </form>
+    </div>
+  </section>
+
   <section class="grid-panels">
     <div>
       <h3>Segmentos atendidos</h3>
@@ -137,7 +149,7 @@
     </div>
     <div>
       <h3>Garantia total</h3>
-      <p>Se o pagamento for validado, acompanhamos até a entrega final com histórico completo de estados e provas.</p>
+      <p>Histórico completo de estados, faturas e provas com auditoria automática.</p>
     </div>
   </section>
 

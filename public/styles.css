@@ -206,3 +206,43 @@ button:hover { background: #ff3c2f; }
   border-radius: 10px;
   border: 1px solid #334155;
 }
+
+/* Responsivo e páginas de autenticação */
+body.auth-page {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+.container.narrow {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.cta-links {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 720px) {
+  header {
+    padding: 14px;
+  }
+  .navbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .card,
+  .card.wide {
+    width: 100% !important;
+  }
+  .container {
+    padding: 12px;
+  }
+}
