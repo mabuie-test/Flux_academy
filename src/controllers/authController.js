@@ -22,6 +22,24 @@ exports.signup = async (req, res) => {
   }
 };
 
+exports.adminSignup = async (req, res) => {
+  try {
+    if (process.env.ADMIN_SETUP_TOKEN && req.headers['x-admin-setup-token'] !== process.env.ADMIN_SETUP_TOKEN) {
+      return res.status(403).json({ message: 'Token de configuração de admin inválido' });
+    }
+
+    const { name, email, password } = req.body;
+    const exists = await User.findOne({ email });
+    if (exists) return res.status(400).json({ message: 'Email já registado' });
+    const user = await User.create({ name, email, password, role: 'admin' });
+    const token = createToken(user);
+    await logAudit({ user: user._id, role: user.role, action: 'SIGNUP_ADMIN', entityType: 'User', entityId: user._id.toString() });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro no registo de admin', error: err.message });
+  }
+};
+
 exports.signin = async (req, res) => {
   try {
     const { email, password } = req.body;

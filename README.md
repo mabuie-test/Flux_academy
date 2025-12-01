@@ -17,6 +17,7 @@ SMTP_PORT=587
 SMTP_USER=
 SMTP_PASS=
 SMTP_FROM="Flux Academy <no-reply@flux.academy>"
+ADMIN_SETUP_TOKEN=
 ```
 2. Instale dependências:
 ```
@@ -45,6 +46,7 @@ npm start
 - Emails automáticos cobrem criação/alteração de faturas, recuperação de senha por token, entrega final, pedidos especiais e disparo em massa pelo admin.
 - Pedidos especiais de TCC e projetos práticos com faturação manual e trilha de auditoria.
 - Página dedicada de faturas com link de download em PDF e atalhos rápidos a partir do painel do cliente.
+- Registo de administradores via `/api/auth/admin/signup` (opcionalmente protegido pelo cabeçalho `x-admin-setup-token` com o valor de `ADMIN_SETUP_TOKEN`). Consulte `registo.txt` para instruções passo-a-passo.
 
 ## Fluxo principal
 1. Cliente regista/login.
