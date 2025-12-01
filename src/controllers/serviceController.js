@@ -26,13 +26,16 @@ exports.createServiceRequest = async (req, res) => {
         invoiceNote: 'Recebemos o seu pedido e vamos estimar o orçamento final.',
       }),
     });
-    await logAudit({
-      user: req.user._id,
-      role: req.user.role,
-      action: 'CRIAR_PEDIDO_ESPECIAL',
-      entityType: 'ServiceRequest',
-      entityId: request._id.toString(),
-    });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'CRIAR_PEDIDO_ESPECIAL',
+        entityType: 'ServiceRequest',
+        entityId: request._id.toString(),
+      },
+      req
+    );
     res.status(201).json({ request });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao criar pedido especial', error: err.message });

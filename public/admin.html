@@ -14,8 +14,8 @@
     </div>
   </header>
   <section class="hero">
-    <h2>Controle total: valide pagamentos e liberte downloads</h2>
-    <p>Comunicação direta e marketing agressivo: pressione a urgência, valide comprovativos e entregue trabalhos finalizados.</p>
+    <h2>Centro de controlo completo</h2>
+    <p>Valide pagamentos, acompanhe auditorias, envie notificações e liberte entregas finais com transparência.</p>
   </section>
 
   <div class="container">
@@ -32,8 +32,43 @@
   </div>
 
   <section id="admin-panel" class="container" style="display:none;">
-    <div class="card" style="width:760px;">
-      <h3>Encomendas pendentes</h3>
+    <aside class="card sidebar">
+      <h3>Menu</h3>
+      <ul class="nav-list">
+        <li><a href="#orders">Encomendas</a></li>
+        <li><a href="#auditoria">Auditoria</a></li>
+        <li><a href="#services">Pedidos especiais</a></li>
+        <li><a href="#broadcast">Envios em massa</a></li>
+      </ul>
+      <div class="divider"></div>
+      <div class="mini-stats" id="admin-mini-stats"></div>
+    </aside>
+
+    <div class="card" id="orders" style="width:760px;">
+      <div class="card-header">
+        <div>
+          <h3>Encomendas</h3>
+          <p class="muted">Filtros rápidos para acompanhar pagamentos, uploads e entregas.</p>
+        </div>
+        <div class="filters">
+          <select id="filter-status">
+            <option value="all">Todos os estados</option>
+            <option value="PENDENTE_PAGAMENTO">Pendente pagamento</option>
+            <option value="PAGAMENTO_EM_VALIDACAO">Pagamento em validação</option>
+            <option value="EM_EXECUCAO">Em execução</option>
+            <option value="CONCLUIDA">Concluída</option>
+            <option value="CANCELADA">Cancelada</option>
+          </select>
+          <input id="filter-search" type="search" placeholder="Buscar por email, nome, fatura" />
+          <select id="filter-invoice">
+            <option value="all">Todas faturas</option>
+            <option value="EMITIDA">Emitidas</option>
+            <option value="PENDENTE">Pendentes</option>
+            <option value="PENDENTE_VALIDACAO">Em validação</option>
+            <option value="PAGA">Pagas</option>
+          </select>
+        </div>
+      </div>
       <div id="admin-stats" class="hero-grid"></div>
       <div id="admin-orders" class="list"></div>
     </div>
@@ -46,11 +81,21 @@
         <button type="submit">Enviar trabalho final</button>
       </form>
     </div>
-    <div class="card" style="width:760px;">
+    <div class="card" id="auditoria" style="width:760px;">
+      <div class="card-header">
+        <div>
+          <h3>Auditoria e contabilidade</h3>
+          <p class="muted">Registos de login, uploads, validações, IPs e totais financeiros.</p>
+        </div>
+      </div>
+      <div id="audit-cards" class="hero-grid"></div>
+      <div id="audit-feed" class="list"></div>
+    </div>
+    <div class="card" id="services" style="width:760px;">
       <h3>Pedidos de TCC / Especial</h3>
       <div id="admin-services" class="list"></div>
     </div>
-    <div class="card" style="width:760px;">
+    <div class="card" id="broadcast" style="width:760px;">
       <h3>Envio de email para todos</h3>
       <form id="broadcast-form">
         <label>Assunto</label><input name="subject" required />
@@ -59,6 +104,19 @@
       </form>
     </div>
   </section>
+
+  <div id="confirm-overlay" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-body">
+        <h4 id="confirm-title">Confirmar ação?</h4>
+        <p id="confirm-text" class="muted"></p>
+      </div>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="ghost">Cancelar</button>
+        <button id="confirm-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="admin.js"></script>
 </body>

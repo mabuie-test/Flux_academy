@@ -15,7 +15,10 @@ exports.signup = async (req, res) => {
     if (exists) return res.status(400).json({ message: 'Email já registado' });
     const user = await User.create({ name, email, password, role: role === 'admin' ? 'admin' : 'client' });
     const token = createToken(user);
-    await logAudit({ user: user._id, role: user.role, action: 'SIGNUP', entityType: 'User', entityId: user._id.toString() });
+    await logAudit(
+      { user: user._id, role: user.role, action: 'SIGNUP', entityType: 'User', entityId: user._id.toString() },
+      req
+    );
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     res.status(500).json({ message: 'Erro no registo', error: err.message });
@@ -33,7 +36,10 @@ exports.adminSignup = async (req, res) => {
     if (exists) return res.status(400).json({ message: 'Email já registado' });
     const user = await User.create({ name, email, password, role: 'admin' });
     const token = createToken(user);
-    await logAudit({ user: user._id, role: user.role, action: 'SIGNUP_ADMIN', entityType: 'User', entityId: user._id.toString() });
+    await logAudit(
+      { user: user._id, role: user.role, action: 'SIGNUP_ADMIN', entityType: 'User', entityId: user._id.toString() },
+      req
+    );
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     res.status(500).json({ message: 'Erro no registo de admin', error: err.message });
@@ -48,7 +54,10 @@ exports.signin = async (req, res) => {
     const match = await user.comparePassword(password);
     if (!match) return res.status(400).json({ message: 'Credenciais inválidas' });
     const token = createToken(user);
-    await logAudit({ user: user._id, role: user.role, action: 'SIGNIN', entityType: 'User', entityId: user._id.toString() });
+    await logAudit(
+      { user: user._id, role: user.role, action: 'SIGNIN', entityType: 'User', entityId: user._id.toString() },
+      req
+    );
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     res.status(500).json({ message: 'Erro no login', error: err.message });
@@ -69,7 +78,10 @@ exports.requestReset = async (req, res) => {
       subject: 'Recuperação de senha - Flux Academy',
       html: passwordResetTemplate(token),
     });
-    await logAudit({ user: user._id, role: user.role, action: 'PEDIDO_RESET', entityType: 'User', entityId: user._id.toString() });
+    await logAudit(
+      { user: user._id, role: user.role, action: 'PEDIDO_RESET', entityType: 'User', entityId: user._id.toString() },
+      req
+    );
     res.json({ message: 'Token enviado para o email. Caso não visualize em alguns minutos, verifique spam ou contacte o suporte.' });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao solicitar reset', error: err.message });
@@ -85,7 +97,10 @@ exports.resetPassword = async (req, res) => {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();
-    await logAudit({ user: user._id, role: user.role, action: 'RESET_PASSWORD', entityType: 'User', entityId: user._id.toString() });
+    await logAudit(
+      { user: user._id, role: user.role, action: 'RESET_PASSWORD', entityType: 'User', entityId: user._id.toString() },
+      req
+    );
     res.json({ message: 'Senha atualizada' });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao redefinir senha', error: err.message });

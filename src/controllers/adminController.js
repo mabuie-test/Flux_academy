@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Invoice = require('../models/Invoice');
 const User = require('../models/User');
+const Audit = require('../models/Audit');
 const ServiceRequest = require('../models/ServiceRequest');
 const {
   sendMail,
@@ -45,7 +46,35 @@ exports.listOrders = async (req, res) => {
   try {
     const orders = await Order.find().populate('user');
     const invoices = await Invoice.find();
-    res.json({ orders, invoices });
+    const audits = await Audit.find().sort({ createdAt: -1 }).limit(40);
+
+    const statusCounts = orders.reduce((acc, o) => {
+      acc[o.status] = (acc[o.status] || 0) + 1;
+      return acc;
+    }, {});
+    const invoiceStatusCounts = invoices.reduce((acc, inv) => {
+      acc[inv.status] = (acc[inv.status] || 0) + 1;
+      return acc;
+    }, {});
+    const revenue = invoices
+      .filter((i) => i.status === 'PAGA')
+      .reduce(
+        (acc, i) => ({
+          total: acc.total + (i.amount || 0),
+          count: acc.count + 1,
+        }),
+        { total: 0, count: 0 }
+      );
+    const auditSummary = {
+      lastLogins: audits.filter((a) => ['SIGNIN', 'SIGNUP', 'SIGNUP_ADMIN'].includes(a.action)).length,
+      paymentValidations: audits.filter((a) => a.action === 'VALIDAR_PAGAMENTO').length,
+      uploads: audits.filter((a) => a.action && a.action.includes('UPLOAD')).length,
+      resetRequests: audits.filter((a) => a.action && a.action.includes('RESET')).length,
+      uniqueIps: new Set(audits.map((a) => a.metadata?.ip).filter(Boolean)).size,
+      totalAudits: await Audit.countDocuments(),
+    };
+
+    res.json({ orders, invoices, audits, statusCounts, invoiceStatusCounts, revenue, auditSummary });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao listar encomendas', error: err.message });
   }
@@ -85,13 +114,16 @@ exports.validatePayment = async (req, res) => {
     await invoice.save();
     await order.save();
     await notifyInvoice(invoice, order, 'Pagamento validado');
-    await logAudit({
-      user: req.user._id,
-      role: req.user.role,
-      action: 'VALIDAR_PAGAMENTO',
-      entityType: 'Order',
-      entityId: order._id.toString(),
-    });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'VALIDAR_PAGAMENTO',
+        entityType: 'Order',
+        entityId: order._id.toString(),
+      },
+      req
+    );
     res.json({ message: 'Pagamento validado', order, invoice });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao validar pagamento', error: err.message });
@@ -114,14 +146,17 @@ exports.rejectPayment = async (req, res) => {
     await invoice.save();
     await order.save();
     await notifyInvoice(invoice, order, 'Pagamento rejeitado');
-    await logAudit({
-      user: req.user._id,
-      role: req.user.role,
-      action: 'REJEITAR_PAGAMENTO',
-      entityType: 'Order',
-      entityId: order._id.toString(),
-      metadata: { reason: invoice.rejectionReason },
-    });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'REJEITAR_PAGAMENTO',
+        entityType: 'Order',
+        entityId: order._id.toString(),
+        metadata: { reason: invoice.rejectionReason },
+      },
+      req
+    );
     res.json({ message: 'Pagamento rejeitado; aguardando novo comprovativo', order, invoice });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao rejeitar pagamento', error: err.message });
@@ -144,13 +179,16 @@ exports.uploadFinalWork = async (req, res) => {
     addOrderHistory(order, 'CONCLUIDA', 'Trabalho final anexado para o cliente');
     await order.save();
     await notifyFinalDelivery(order);
-    await logAudit({
-      user: req.user._id,
-      role: req.user.role,
-      action: 'UPLOAD_TRABALHO_FINAL',
-      entityType: 'Order',
-      entityId: order._id.toString(),
-    });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'UPLOAD_TRABALHO_FINAL',
+        entityType: 'Order',
+        entityId: order._id.toString(),
+      },
+      req
+    );
     res.json({ message: 'Trabalho final carregado', order });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao subir trabalho final', error: err.message });
@@ -175,13 +213,16 @@ exports.expireInvoice = async (req, res) => {
     await invoice.save();
     await order.save();
     await notifyInvoice(invoice, order, 'Fatura expirada');
-    await logAudit({
-      user: req.user._id,
-      role: req.user.role,
-      action: 'EXPIRAR_FATURA',
-      entityType: 'Order',
-      entityId: order._id.toString(),
-    });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'EXPIRAR_FATURA',
+        entityType: 'Order',
+        entityId: order._id.toString(),
+      },
+      req
+    );
 
     res.json({ message: 'Estado de expiração avaliado', order, invoice });
   } catch (err) {
@@ -218,14 +259,17 @@ exports.updateServiceRequest = async (req, res) => {
       });
     }
 
-    await logAudit({
-      user: req.user._id,
-      role: req.user.role,
-      action: 'ATUALIZAR_PEDIDO_ESPECIAL',
-      entityType: 'ServiceRequest',
-      entityId: request._id.toString(),
-      metadata: { status, invoiceAmount },
-    });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'ATUALIZAR_PEDIDO_ESPECIAL',
+        entityType: 'ServiceRequest',
+        entityId: request._id.toString(),
+        metadata: { status, invoiceAmount },
+      },
+      req
+    );
 
     res.json({ request });
   } catch (err) {
@@ -246,13 +290,16 @@ exports.broadcastEmail = async (req, res) => {
         })
       )
     );
-    await logAudit({
-      user: req.user._id,
-      role: req.user.role,
-      action: 'BROADCAST_EMAIL',
-      entityType: 'User',
-      entityId: 'all',
-    });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'BROADCAST_EMAIL',
+        entityType: 'User',
+        entityId: 'all',
+      },
+      req
+    );
     res.json({ message: 'Emails enviados' });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao enviar emails', error: err.message });

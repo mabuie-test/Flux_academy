@@ -91,14 +91,17 @@ exports.createOrder = async (req, res) => {
       statusHistory: [{ status: 'EMITIDA', note: 'Fatura criada automaticamente', changedAt: new Date() }],
     });
     await notifyInvoice(invoice, order, 'Fatura emitida');
-    await logAudit({
-      user: req.user._id,
-      role: req.user.role,
-      action: 'CRIACAO_ENCOMENDA',
-      entityType: 'Order',
-      entityId: order._id.toString(),
-      metadata: { invoice: invoice.invoiceNumber },
-    });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'CRIACAO_ENCOMENDA',
+        entityType: 'Order',
+        entityId: order._id.toString(),
+        metadata: { invoice: invoice.invoiceNumber },
+      },
+      req
+    );
 
     res.status(201).json({ order, invoice });
   } catch (err) {
@@ -168,14 +171,17 @@ exports.uploadProof = async (req, res) => {
     await invoice.save();
     await order.save();
     await notifyInvoice(invoice, order, 'Comprovativo submetido');
-    await logAudit({
-      user: req.user._id,
-      role: req.user.role,
-      action: 'UPLOAD_COMPROVATIVO',
-      entityType: 'Invoice',
-      entityId: invoice._id.toString(),
-      metadata: { file: invoice.proofFile },
-    });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'UPLOAD_COMPROVATIVO',
+        entityType: 'Invoice',
+        entityId: invoice._id.toString(),
+        metadata: { file: invoice.proofFile },
+      },
+      req
+    );
 
     res.json({ message: 'Comprovativo enviado', order, invoice });
   } catch (err) {
@@ -193,6 +199,16 @@ exports.downloadFinal = async (req, res) => {
       return res.status(403).json({ message: 'Pagamento ainda não confirmado' });
     }
     const filePath = path.join(__dirname, '../../uploads/trabalhos', order.finalFile);
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'DOWNLOAD_TRABALHO',
+        entityType: 'Order',
+        entityId: order._id.toString(),
+      },
+      req
+    );
     res.download(filePath);
   } catch (err) {
     res.status(500).json({ message: 'Erro ao descarregar trabalho', error: err.message });

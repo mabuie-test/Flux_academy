@@ -286,3 +286,80 @@ body.auth-page {
   .navbar .ghost { width: 100%; text-align: center; }
   .split { flex-direction: column; align-items: flex-start; }
 }
+
+.list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #0f172a;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.sidebar {
+  width: 280px;
+  position: sticky;
+  top: 16px;
+  align-self: flex-start;
+  height: fit-content;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+}
+
+.nav-list li { padding: 6px 0; }
+.nav-list a { color: #a5b4fc; }
+.divider { height: 1px; background: #243b53; margin: 12px 0; }
+.mini-stats p { margin: 4px 0; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal.hidden { display: none; }
+
+.modal-card {
+  background: #0d1b2a;
+  padding: 18px 20px;
+  border-radius: 12px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}

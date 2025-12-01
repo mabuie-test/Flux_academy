@@ -3,6 +3,45 @@ let authToken = localStorage.getItem('token') || '';
 let currentOrder = null;
 let currentQuote = null;
 
+const modal = document.getElementById('confirm-overlay');
+const modalTitle = document.getElementById('confirm-title');
+const modalText = document.getElementById('confirm-text');
+const modalOk = document.getElementById('confirm-ok');
+const modalCancel = document.getElementById('confirm-cancel');
+
+function showConfirm({ title, text }) {
+  return new Promise((resolve) => {
+    modalTitle.textContent = title || 'Confirmar';
+    modalText.textContent = text || '';
+    modalOk.textContent = 'Confirmar';
+    modalCancel.textContent = 'Cancelar';
+    modal.classList.remove('hidden');
+
+    const close = (result) => {
+      modal.classList.add('hidden');
+      modalOk.removeEventListener('click', okHandler);
+      modalCancel.removeEventListener('click', cancelHandler);
+      resolve(result);
+    };
+
+    const okHandler = () => close(true);
+    const cancelHandler = () => close(false);
+    modalOk.addEventListener('click', okHandler);
+    modalCancel.addEventListener('click', cancelHandler);
+  });
+}
+
+function toast(message) {
+  modalTitle.textContent = 'Aviso';
+  modalText.textContent = message;
+  modalOk.textContent = 'Ok';
+  modalCancel.textContent = 'Fechar';
+  modal.classList.remove('hidden');
+  const close = () => modal.classList.add('hidden');
+  modalOk.onclick = close;
+  modalCancel.onclick = close;
+}
+
 function updateNav() {
   document.querySelectorAll('.anon-only').forEach((el) => (el.style.display = authToken ? 'none' : 'inline-flex'));
   document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
@@ -39,7 +78,7 @@ const logoutBtn = document.getElementById('logout');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', () => {
     clearSession();
-    alert('Sessão terminada. Faça login novamente para continuar.');
+    toast('Sessão terminada. Faça login novamente para continuar.');
   });
 }
 
@@ -54,13 +93,13 @@ document.getElementById('order-form').addEventListener('submit', async (e) => {
   });
   const data = await res.json();
   if (res.ok) {
-    alert('Encomenda criada. Confira a fatura e pague via M-Pesa!');
+    toast('Encomenda criada. Confira a fatura e pague via M-Pesa!');
     e.target.reset();
     currentQuote = null;
     renderQuote();
     window.location.href = `/invoice.html?id=${data.order._id}`;
   } else {
-    alert(data.message || 'Erro ao criar encomenda');
+    toast(data.message || 'Erro ao criar encomenda');
   }
 });
 
@@ -110,7 +149,7 @@ async function loadOrders() {
   });
   const data = await res.json();
   if (!res.ok) {
-    alert(data.message || 'Erro ao carregar encomendas');
+    toast(data.message || 'Erro ao carregar encomendas');
     return;
   }
   const list = document.getElementById('orders-list');
@@ -153,7 +192,7 @@ async function loadOrders() {
 async function viewOrder(id) {
   const res = await fetch(`${apiBase}/orders/${id}`, { headers: { Authorization: `Bearer ${authToken}` } });
   const data = await res.json();
-  if (!res.ok) return alert(data.message || 'Erro ao abrir encomenda');
+  if (!res.ok) return toast(data.message || 'Erro ao abrir encomenda');
   currentOrder = data;
   showOrderDetails(true);
   showDashboard(false);
@@ -228,6 +267,11 @@ if (proofForm) {
   proofForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!currentOrder) return;
+    const confirm = await showConfirm({
+      title: 'Submeter comprovativo?',
+      text: 'Confirme o envio do comprovativo para validação do administrador.',
+    });
+    if (!confirm) return;
     const formData = new FormData(proofForm);
     const res = await fetch(`${apiBase}/orders/${currentOrder.order._id}/upload-proof`, {
       method: 'POST',
@@ -236,11 +280,11 @@ if (proofForm) {
     });
     const data = await res.json();
     if (res.ok) {
-      alert('Comprovativo submetido. Aguarde validação.');
+      toast('Comprovativo submetido. Aguarde validação.');
       currentOrder = data;
       renderOrderDetails();
     } else {
-      alert(data.message || 'Erro ao enviar comprovativo');
+      toast(data.message || 'Erro ao enviar comprovativo');
     }
   });
 }
@@ -271,7 +315,7 @@ function attachServiceForm(formId, type) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!authToken) {
-      alert('Faça login para enviar o pedido.');
+      toast('Faça login para enviar o pedido.');
       return;
     }
     const payload = Object.fromEntries(new FormData(form).entries());
@@ -283,10 +327,10 @@ function attachServiceForm(formId, type) {
     });
     const data = await res.json();
     if (res.ok) {
-      alert('Pedido registado. Enviámos confirmação por email.');
+      toast('Pedido registado. Enviámos confirmação por email.');
       form.reset();
     } else {
-      alert(data.message || 'Erro ao submeter pedido');
+      toast(data.message || 'Erro ao submeter pedido');
     }
   });
 }
@@ -301,7 +345,7 @@ async function downloadInvoicePdf(orderId, invoiceNumber) {
     });
     if (!res.ok) {
       const data = await res.json();
-      return alert(data.message || 'Não foi possível gerar o PDF');
+      return toast(data.message || 'Não foi possível gerar o PDF');
     }
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
@@ -313,6 +357,6 @@ async function downloadInvoicePdf(orderId, invoiceNumber) {
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (err) {
-    alert('Erro ao baixar PDF da fatura');
+    toast('Erro ao baixar PDF da fatura');
   }
 }
