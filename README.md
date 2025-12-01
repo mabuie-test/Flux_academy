@@ -37,6 +37,7 @@ npm start
 - `src/controllers` – lógica de autenticação, encomendas e painel admin.
 - `src/routes` – rotas de API para auth, cliente e admin.
 - `src/utils/pricing.js` – cálculo reutilizável do preço total.
+- Preço base atual: 35 MZN por página (ajustável em `src/utils/pricing.js`).
 - `public/` – frontend HTML/CSS/JS simples para cliente e admin.
 - `uploads/` – comprovativos e trabalhos finais enviados via multer.
 - `/api/orders/quote` – endpoint para simular preços em tempo real.

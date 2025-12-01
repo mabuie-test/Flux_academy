@@ -1,4 +1,4 @@
-const BASE_PRICE_PER_PAGE = 100;
+const BASE_PRICE_PER_PAGE = 35;
 
 const levelFactors = {
   tecnico: 1.0,
