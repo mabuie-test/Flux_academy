@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
-const { sendMail } = require('../utils/mailer');
+const { sendMail, passwordResetTemplate } = require('../utils/mailer');
 const { logAudit } = require('../utils/audit');
 
 function createToken(user) {
@@ -49,7 +49,7 @@ exports.requestReset = async (req, res) => {
     await sendMail({
       to: email,
       subject: 'Recuperação de senha - Flux Academy',
-      html: `<p>Use este token para redefinir a sua senha: <strong>${token}</strong></p>`,
+      html: passwordResetTemplate(token),
     });
     await logAudit({ user: user._id, role: user.role, action: 'PEDIDO_RESET', entityType: 'User', entityId: user._id.toString() });
     res.json({ message: 'Token enviado para o email' });

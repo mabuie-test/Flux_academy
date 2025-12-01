@@ -3,6 +3,7 @@ body {
   margin: 0;
   background: linear-gradient(135deg, #0b132b, #1c2541);
   color: #f4f4f4;
+  min-height: 100vh;
 }
 header {
   background: #3a506b;
@@ -15,9 +16,12 @@ header h1 {
   font-size: 28px;
   text-transform: uppercase;
 }
+.wrap { max-width: 1200px; margin: 0 auto; }
 .hero {
   text-align: center;
   padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 .hero-grid {
   display: grid;
@@ -74,6 +78,8 @@ header h1 {
   gap: 20px;
   padding: 20px;
   justify-content: center;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 .card {
   background: #1b263b;
@@ -230,6 +236,8 @@ body.auth-page {
   flex-wrap: wrap;
 }
 
+.stacked { display: flex; flex-direction: column; gap: 12px; }
+
 @media (max-width: 720px) {
   header {
     padding: 14px;
@@ -245,4 +253,9 @@ body.auth-page {
   .container {
     padding: 12px;
   }
+  .hero h2 { font-size: 24px; }
+  .hero p { font-size: 14px; }
+  .proof { flex-direction: column; align-items: flex-start; }
+  .btn { width: 100%; text-align: center; }
+  .navbar .ghost { width: 100%; text-align: center; }
 }

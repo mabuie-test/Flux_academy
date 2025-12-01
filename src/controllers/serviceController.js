@@ -1,5 +1,5 @@
 const ServiceRequest = require('../models/ServiceRequest');
-const { sendMail } = require('../utils/mailer');
+const { sendMail, serviceRequestTemplate } = require('../utils/mailer');
 const { logAudit } = require('../utils/audit');
 
 exports.createServiceRequest = async (req, res) => {
@@ -20,7 +20,11 @@ exports.createServiceRequest = async (req, res) => {
     await sendMail({
       to: contactEmail,
       subject: 'Pedido especial recebido',
-      html: `<p>Recebemos o seu pedido (${type}). Entraremos em contacto com o orçamento final.</p>`,
+      html: serviceRequestTemplate({
+        category: type,
+        status: 'RECEBIDO',
+        invoiceNote: 'Recebemos o seu pedido e vamos estimar o orçamento final.',
+      }),
     });
     await logAudit({
       user: req.user._id,

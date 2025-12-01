@@ -41,7 +41,7 @@ npm start
 - `uploads/` – comprovativos e trabalhos finais enviados via multer.
 - `/api/orders/quote` – endpoint para simular preços em tempo real.
 - Uploads protegidos com limites (5MB comprovativos, 15MB trabalhos finais) e formatos validados (pdf/jpg/png para comprovativos; pdf/doc/docx para trabalhos).
-- Emails automáticos em mudanças de estado de fatura e criação, recuperação de senha por token e disparo em massa pelo admin.
+- Emails automáticos cobrem criação/alteração de faturas, recuperação de senha por token, entrega final, pedidos especiais e disparo em massa pelo admin.
 - Pedidos especiais de TCC e projetos práticos com faturação manual e trilha de auditoria.
 
 ## Fluxo principal

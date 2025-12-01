@@ -37,4 +37,46 @@ function invoiceEmailTemplate(invoice, order, statusLabel) {
   `;
 }
 
-module.exports = { sendMail, invoiceEmailTemplate };
+function finalDeliveryTemplate(order) {
+  return `
+    <h2>Trabalho final pronto para download</h2>
+    <p>O seu pedido ${order.workType} (${order.area}) foi concluído.</p>
+    <p>Aceda ao painel e faça download imediato do ficheiro final.</p>
+    <p>Estado atual: <strong>${order.status}</strong></p>
+  `;
+}
+
+function passwordResetTemplate(token) {
+  return `
+    <h2>Recuperação de senha</h2>
+    <p>Use o token abaixo para redefinir a sua password:</p>
+    <p style="font-size:20px;font-weight:bold;">${token}</p>
+    <p>Se não pediu esta alteração, ignore este email.</p>
+  `;
+}
+
+function serviceRequestTemplate(request) {
+  return `
+    <h2>Atualização do seu pedido especial</h2>
+    <p>Categoria: ${request.category}</p>
+    <p>Estado: <strong>${request.status}</strong></p>
+    <p>${request.invoiceNote || 'A equipa irá detalhar o próximo passo em breve.'}</p>
+    ${request.invoiceAmount ? `<p>Orçamento final: <strong>${request.invoiceAmount}</strong></p>` : ''}
+  `;
+}
+
+function broadcastTemplate(message) {
+  return `
+    <h2>Comunicação da administração</h2>
+    <p>${message || 'Atualização importante sobre a Flux Academy.'}</p>
+  `;
+}
+
+module.exports = {
+  sendMail,
+  invoiceEmailTemplate,
+  finalDeliveryTemplate,
+  passwordResetTemplate,
+  serviceRequestTemplate,
+  broadcastTemplate,
+};

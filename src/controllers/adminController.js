@@ -2,7 +2,13 @@ const Order = require('../models/Order');
 const Invoice = require('../models/Invoice');
 const User = require('../models/User');
 const ServiceRequest = require('../models/ServiceRequest');
-const { sendMail, invoiceEmailTemplate } = require('../utils/mailer');
+const {
+  sendMail,
+  invoiceEmailTemplate,
+  finalDeliveryTemplate,
+  serviceRequestTemplate,
+  broadcastTemplate,
+} = require('../utils/mailer');
 const { logAudit } = require('../utils/audit');
 
 function addOrderHistory(order, status, note) {
@@ -20,6 +26,17 @@ async function notifyInvoice(invoice, order, label) {
       to: user.email,
       subject: `Atualização da fatura #${invoice.invoiceNumber}`,
       html: invoiceEmailTemplate(invoice, order, label),
+    });
+  }
+}
+
+async function notifyFinalDelivery(order) {
+  const user = await User.findById(order.user);
+  if (user) {
+    await sendMail({
+      to: user.email,
+      subject: 'Trabalho final disponível para download',
+      html: finalDeliveryTemplate(order),
     });
   }
 }
@@ -126,6 +143,7 @@ exports.uploadFinalWork = async (req, res) => {
     order.status = 'CONCLUIDA';
     addOrderHistory(order, 'CONCLUIDA', 'Trabalho final anexado para o cliente');
     await order.save();
+    await notifyFinalDelivery(order);
     await logAudit({
       user: req.user._id,
       role: req.user.role,
@@ -192,11 +210,11 @@ exports.updateServiceRequest = async (req, res) => {
     if (status === 'FATURA_ENVIADA') request.invoiceSentAt = new Date();
     await request.save();
 
-    if (status === 'FATURA_ENVIADA') {
+    if (status) {
       await sendMail({
         to: request.contactEmail,
-        subject: 'Fatura personalizada - pedido especial',
-        html: `<p>Segue o orçamento final: <strong>${invoiceAmount || ''}</strong></p><p>${invoiceNote || ''}</p>`,
+        subject: 'Atualização do seu pedido especial',
+        html: serviceRequestTemplate(request),
       });
     }
 
@@ -224,7 +242,7 @@ exports.broadcastEmail = async (req, res) => {
         sendMail({
           to: u.email,
           subject: subject || 'Aviso administrativo Flux Academy',
-          html: message || 'Comunicação geral do administrador.',
+          html: broadcastTemplate(message),
         })
       )
     );
