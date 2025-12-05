@@ -41,6 +41,7 @@ npm start
 - Preço base atual: 35 MZN por página (ajustável em `src/utils/pricing.js`).
 - `public/` – frontend HTML/CSS/JS simples para cliente e admin.
 - `uploads/` – comprovativos e trabalhos finais enviados via multer.
+- Materiais didáticos fornecidos pelo cliente (percentagem e múltiplos ficheiros) ficam registados na encomenda e acessíveis ao admin.
 - `/api/orders/quote` – endpoint para simular preços em tempo real.
 - Uploads protegidos com limites (5MB comprovativos, 15MB trabalhos finais) e formatos validados (pdf/jpg/png para comprovativos; pdf/doc/docx para trabalhos).
 - Emails automáticos cobrem criação/alteração de faturas, recuperação de senha por token, entrega final, pedidos especiais e disparo em massa pelo admin.

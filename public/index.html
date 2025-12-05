@@ -85,6 +85,19 @@
         <input type="date" name="deliveryDeadline" />
         <label>Descrição detalhada</label>
         <textarea name="description" rows="3"></textarea>
+        <div class="inline-group">
+          <label>Tens materiais didáticos fornecidos?</label>
+          <select name="hasMaterials" id="has-materials">
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+        </div>
+        <div id="materials-extra" class="nested" style="display:none;">
+          <label>Percentagem prevista de uso dos materiais (%)</label>
+          <input type="number" name="materialsUsagePercent" min="0" max="100" />
+          <label>Enviar materiais (pdf, imagens, docx) - pode selecionar vários</label>
+          <input type="file" name="materials" multiple />
+        </div>
       <button type="submit">Calcular e Encomendar</button>
     </form>
     <div id="quote-preview" class="quote"></div>

@@ -14,6 +14,7 @@ const app = express();
 
 fs.mkdirSync(path.join(__dirname, '../uploads/comprovativos'), { recursive: true });
 fs.mkdirSync(path.join(__dirname, '../uploads/trabalhos'), { recursive: true });
+fs.mkdirSync(path.join(__dirname, '../uploads/materiais'), { recursive: true });
 
 app.use(cors());
 app.use(express.json());
@@ -23,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/uploads/comprovativos', express.static(path.join(__dirname, '../uploads/comprovativos')));
 app.use('/uploads/trabalhos', express.static(path.join(__dirname, '../uploads/trabalhos')));
+app.use('/uploads/materiais', express.static(path.join(__dirname, '../uploads/materiais')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);

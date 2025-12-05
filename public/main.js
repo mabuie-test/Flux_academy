@@ -42,6 +42,21 @@ function toast(message) {
   modalCancel.onclick = close;
 }
 
+const materialsExtra = document.getElementById('materials-extra');
+const materialsSelect = document.getElementById('has-materials');
+function toggleMaterials(show) {
+  if (!materialsExtra) return;
+  materialsExtra.style.display = show ? 'block' : 'none';
+  if (!show) {
+    materialsExtra.querySelectorAll('input').forEach((el) => {
+      el.value = '';
+    });
+  }
+}
+if (materialsSelect) {
+  materialsSelect.addEventListener('change', (e) => toggleMaterials(e.target.value === 'sim'));
+}
+
 function updateNav() {
   document.querySelectorAll('.anon-only').forEach((el) => (el.style.display = authToken ? 'none' : 'inline-flex'));
   document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
@@ -84,17 +99,18 @@ if (logoutBtn) {
 
 document.getElementById('order-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const raw = Object.fromEntries(new FormData(e.target).entries());
-  raw.pages = Number(raw.pages);
+  const formData = new FormData(e.target);
+  formData.set('pages', Number(formData.get('pages') || 0));
   const res = await fetch(`${apiBase}/orders`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-    body: JSON.stringify(raw),
+    headers: { Authorization: `Bearer ${authToken}` },
+    body: formData,
   });
   const data = await res.json();
   if (res.ok) {
-    toast('Encomenda criada. Confira a fatura e pague via M-Pesa!');
+    toast('Encomenda criada. Fatura pronta para pagamento.');
     e.target.reset();
+    toggleMaterials(false);
     currentQuote = null;
     renderQuote();
     window.location.href = `/invoice.html?id=${data.order._id}`;
@@ -163,6 +179,7 @@ async function loadOrders() {
       <p><strong>${order.workType}</strong> - ${order.area} <span class="badge">${order.status}</span></p>
       <p>Preço: ${order.priceBreakdown.total} | Prazo pagamento: ${new Date(order.paymentDeadline).toLocaleString()}</p>
       <p>Fatura: #${invoice.invoiceNumber || 'N/A'} (${invoice.status || 'EMITIDA'})</p>
+      <p class="muted">Materiais do cliente: ${order.hasMaterials ? 'Sim' : 'Não'}</p>
       <div class="stacked-actions">
         <button data-id="${order._id}" class="primary">Ver detalhes</button>
         <a class="ghost" href="/invoice.html?id=${order._id}">Abrir fatura</a>
@@ -208,6 +225,16 @@ function renderOrderDetails() {
     <p>Páginas: ${order.pages} | Nível: ${order.academicLevel} | Complexidade: ${order.complexity} | Urgência: ${order.urgency}</p>
     <p>Entrega desejada: ${order.deliveryDeadline ? new Date(order.deliveryDeadline).toLocaleDateString() : '—'}</p>
     <p>Descrição: ${order.description}</p>
+    <p>Materiais fornecidos: ${order.hasMaterials ? 'Sim' : 'Não'}${
+    order.hasMaterials && order.materialsUsagePercent ? ` (${order.materialsUsagePercent}% previsto)` : ''
+  }</p>
+    ${
+      order.materialsFiles?.length
+        ? `<div class="attachments">${order.materialsFiles
+            .map((f) => `<a href="/uploads/materiais/${f}" target="_blank">${f}</a>`)
+            .join('')}</div>`
+        : ''
+    }
   `;
   const invoiceInfo = document.getElementById('invoice-info');
   invoiceInfo.innerHTML = `

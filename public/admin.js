@@ -107,6 +107,16 @@ function renderDetail() {
     <p><strong>${order.workType}</strong> - ${order.area}</p>
     <p>Estado: ${order.status}</p>
     <p>Fatura #${invoice.invoiceNumber} (${invoice.status})</p>
+    <p>Materiais do cliente: ${order.hasMaterials ? 'Sim' : 'Não'}${
+    order.hasMaterials && order.materialsUsagePercent ? ` (${order.materialsUsagePercent}% previsto)` : ''
+  }</p>
+    ${
+      order.materialsFiles?.length
+        ? `<div class="attachments">${order.materialsFiles
+            .map((f) => `<a href="/uploads/materiais/${f}" target="_blank">${f}</a>`)
+            .join('')}</div>`
+        : ''
+    }
     <p>Comprovativo: ${invoice.proofFile ? `<a href="/uploads/comprovativos/${invoice.proofFile}" target="_blank">Ver ficheiro</a>` : 'N/A'}</p>
     ${invoice.rejectionReason ? `<p class="alert">Última rejeição: ${invoice.rejectionReason}</p>` : ''}
     <div id="admin-timeline" class="timeline"></div>

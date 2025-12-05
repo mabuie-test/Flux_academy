@@ -15,6 +15,9 @@ const OrderSchema = new mongoose.Schema(
     complexity: { type: String, enum: ['basica', 'intermedia', 'avancada'], required: true },
     urgency: { type: String, enum: ['normal', '72h', '48h', '24h'], required: true },
     description: { type: String, required: true },
+    hasMaterials: { type: Boolean, default: false },
+    materialsUsagePercent: { type: Number, min: 0, max: 100 },
+    materialsFiles: [{ type: String }],
     status: {
       type: String,
       enum: [

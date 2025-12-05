@@ -19,13 +19,28 @@ function addInvoiceHistory(invoice, status, note) {
   invoice.statusHistory.push({ status, note, changedAt: new Date() });
 }
 
-function validatePayload({ workType, area, academicLevel, pages, formatting, complexity, urgency, description }) {
+function validatePayload({
+  workType,
+  area,
+  academicLevel,
+  pages,
+  formatting,
+  complexity,
+  urgency,
+  description,
+  hasMaterials,
+  materialsUsagePercent,
+}) {
   if (!workType || !area || !formatting || !description) return 'Campos obrigatórios em falta';
   if (!ALLOWED_LEVELS.includes(academicLevel)) return 'Nível académico inválido';
   if (!ALLOWED_COMPLEXITIES.includes(complexity)) return 'Complexidade inválida';
   if (!ALLOWED_URGENCIES.includes(urgency)) return 'Urgência inválida';
   const pageNum = Number(pages);
   if (Number.isNaN(pageNum) || pageNum < 1) return 'Número de páginas inválido';
+  if (hasMaterials === true || hasMaterials === 'true' || hasMaterials === 'sim') {
+    const percent = Number(materialsUsagePercent);
+    if (Number.isNaN(percent) || percent < 0 || percent > 100) return 'Percentagem de uso dos materiais inválida';
+  }
   return null;
 }
 
@@ -52,10 +67,27 @@ exports.createOrder = async (req, res) => {
       urgency,
       description,
       deliveryDeadline,
+      hasMaterials,
+      materialsUsagePercent,
     } = req.body;
 
-    const validationError = validatePayload({ workType, area, academicLevel, pages, formatting, complexity, urgency, description });
+    const validationError = validatePayload({
+      workType,
+      area,
+      academicLevel,
+      pages,
+      formatting,
+      complexity,
+      urgency,
+      description,
+      hasMaterials,
+      materialsUsagePercent,
+    });
     if (validationError) return res.status(400).json({ message: validationError });
+
+    const parsedHasMaterials = hasMaterials === true || hasMaterials === 'true' || hasMaterials === 'sim';
+    const parsedMaterialsUsage = materialsUsagePercent ? Number(materialsUsagePercent) : undefined;
+    const materialsFiles = Array.isArray(req.files) ? req.files.map((f) => f.filename) : [];
 
     const priceBreakdown = calculatePrice({ pages, academicLevel, complexity, urgency });
     const paymentDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -72,6 +104,9 @@ exports.createOrder = async (req, res) => {
       description,
       deliveryDeadline,
       paymentDeadline,
+      hasMaterials: parsedHasMaterials,
+      materialsUsagePercent: parsedHasMaterials ? parsedMaterialsUsage : undefined,
+      materialsFiles,
       priceBreakdown,
       statusHistory: [{ status: 'PENDENTE_PAGAMENTO', note: 'Pedido criado', changedAt: new Date() }],
     });

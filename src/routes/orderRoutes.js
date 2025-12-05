@@ -24,6 +24,16 @@ const proofStorage = multer.diskStorage({
   },
 });
 
+const materialsStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../../uploads/materiais'));
+  },
+  filename: function (req, file, cb) {
+    const unique = `${Date.now()}-${file.originalname}`;
+    cb(null, unique);
+  },
+});
+
 const proofUpload = multer({
   storage: proofStorage,
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -34,7 +44,23 @@ const proofUpload = multer({
   },
 });
 
-router.post('/', auth, createOrder);
+const orderUpload = multer({
+  storage: materialsStorage,
+  limits: { fileSize: 7 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+    ];
+    if (!allowed.includes(file.mimetype)) return cb(new Error('Formato inválido para materiais'));
+    cb(null, true);
+  },
+});
+
+router.post('/', auth, orderUpload.array('materials', 5), createOrder);
 router.get('/', auth, getOrders);
 router.post('/quote', auth, quotePrice);
 router.get('/:id', auth, getOrderById);

@@ -2,7 +2,6 @@ const apiBase = '/api';
 const params = new URLSearchParams(window.location.search);
 const orderId = params.get('id');
 let authToken = localStorage.getItem('token') || '';
-let refreshTimer;
 
 function ensureAuth() {
   const logoutBtn = document.getElementById('logout');
@@ -32,11 +31,6 @@ async function loadInvoice() {
   }
 }
 
-function startAutoRefresh() {
-  if (refreshTimer || !orderId) return;
-  refreshTimer = setInterval(loadInvoice, 15000);
-}
-
 function renderInvoice(order, invoice) {
   const title = document.getElementById('invoice-title');
   title.textContent = `Fatura #${invoice.invoiceNumber}`;
@@ -57,11 +51,12 @@ function renderInvoice(order, invoice) {
 
 const backBtn = document.getElementById('back-dashboard');
 if (backBtn) backBtn.addEventListener('click', () => window.history.back());
+const refreshBtn = document.getElementById('refresh-invoice');
+if (refreshBtn) refreshBtn.addEventListener('click', loadInvoice);
 
 ensureAuth();
 if (orderId) {
   loadInvoice();
-  startAutoRefresh();
 }
 
 async function downloadInvoicePdf(orderId, invoiceNumber) {
