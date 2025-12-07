@@ -1,7 +1,8 @@
 const apiBase = '/api';
 const params = new URLSearchParams(window.location.search);
 const orderId = params.get('id');
-let authToken = localStorage.getItem('token') || '';
+let authToken = localStorage.getItem('token') || localStorage.getItem('adminToken') || '';
+let refreshTimer = null;
 
 function ensureAuth() {
   const logoutBtn = document.getElementById('logout');
@@ -9,6 +10,7 @@ function ensureAuth() {
     logoutBtn.style.display = authToken ? 'inline-flex' : 'none';
     logoutBtn.addEventListener('click', () => {
       localStorage.removeItem('token');
+      localStorage.removeItem('adminToken');
       window.location.href = '/login.html';
     });
   }
@@ -57,6 +59,7 @@ if (refreshBtn) refreshBtn.addEventListener('click', loadInvoice);
 ensureAuth();
 if (orderId) {
   loadInvoice();
+  refreshTimer = setInterval(loadInvoice, 8000);
 }
 
 async function downloadInvoicePdf(orderId, invoiceNumber) {

@@ -12,6 +12,7 @@
     <div class="navbar">
       <a class="anon-only" href="/login.html">Login</a>
       <a class="anon-only" href="/register.html">Registo</a>
+      <a href="/documents.html" class="auth-only">Faturas e documentos</a>
       <a href="/admin.html">Admin</a>
       <a href="/terms.html">Termos</a>
       <button id="logout" class="ghost auth-only">Terminar sessão</button>
@@ -115,6 +116,7 @@
     <button onclick="document.getElementById('special-card').scrollIntoView({behavior:'smooth'})">Encomendas práticas</button>
     <button onclick="document.getElementById('invoice-area').scrollIntoView({behavior:'smooth'})">Gestão de faturas</button>
     <button onclick="document.getElementById('deliveries-area').scrollIntoView({behavior:'smooth'})">Documentos recebidos</button>
+    <button onclick="window.open('/documents.html','_blank')">Página dedicada</button>
   </nav>
 
   <section id="order-details" class="container" style="display:none;">

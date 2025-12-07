@@ -48,6 +48,7 @@ npm start
 - Termos e Condições disponíveis em `/terms.html`; aceitação obrigatória nos formulários de login/registo.
 - Pedidos especiais de TCC e projetos práticos com faturação manual e trilha de auditoria.
 - Página dedicada de faturas com link de download em PDF e atalhos rápidos a partir do painel do cliente.
+- Página extra `/documents.html` para visualizar todas as faturas em nova aba e descarregar documentos finais enviados pelo admin.
 - Registo de administradores via `/api/auth/admin/signup` (opcionalmente protegido pelo cabeçalho `x-admin-setup-token` com o valor de `ADMIN_SETUP_TOKEN`). Consulte `registo.txt` para instruções passo-a-passo.
 
 ## Fluxo principal

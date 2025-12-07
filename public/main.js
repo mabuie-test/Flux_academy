@@ -2,6 +2,7 @@ const apiBase = '/api';
 let authToken = localStorage.getItem('token') || '';
 let currentOrder = null;
 let currentQuote = null;
+let refreshHandle = null;
 
 const modal = document.getElementById('confirm-overlay');
 const modalTitle = document.getElementById('confirm-title');
@@ -62,11 +63,21 @@ function updateNav() {
   document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
   document.querySelectorAll('.auth-hide').forEach((el) => (el.style.display = authToken ? 'none' : 'flex'));
   document.querySelectorAll('.auth-show').forEach((el) => (el.style.display = authToken ? 'flex' : 'none'));
+  if (authToken && !refreshHandle) {
+    refreshHandle = setInterval(() => {
+      if (document.hidden) return;
+      loadOrders(true);
+    }, 8000);
+  }
 }
 
 function clearSession() {
   authToken = '';
   localStorage.removeItem('token');
+  if (refreshHandle) {
+    clearInterval(refreshHandle);
+    refreshHandle = null;
+  }
   showDashboard(false);
   showOrderDetails(false);
   updateNav();
@@ -115,7 +126,10 @@ document.getElementById('order-form').addEventListener('submit', async (e) => {
     toggleMaterials(false);
     currentQuote = null;
     renderQuote();
-    window.location.href = `/invoice.html?id=${data.order._id}`;
+    setTimeout(() => {
+      window.open(`/invoice.html?id=${data.order._id}`, '_blank');
+      loadOrders();
+    }, 250);
   } else {
     toast(data.message || 'Erro ao criar encomenda');
   }
@@ -161,13 +175,13 @@ function renderQuote() {
   `;
 }
 
-async function loadOrders() {
+async function loadOrders(silent = false) {
   const res = await fetch(`${apiBase}/orders`, {
     headers: { Authorization: `Bearer ${authToken}` },
   });
   const data = await res.json();
   if (!res.ok) {
-    toast(data.message || 'Erro ao carregar encomendas');
+    if (!silent) toast(data.message || 'Erro ao carregar encomendas');
     return;
   }
   const list = document.getElementById('orders-list');
@@ -186,7 +200,7 @@ async function loadOrders() {
       <p class="muted">Materiais do cliente: ${order.hasMaterials ? 'Sim' : 'Não'}</p>
       <div class="stacked-actions">
         <button data-id="${order._id}" class="primary">Ver detalhes</button>
-        <a class="ghost" href="/invoice.html?id=${order._id}">Abrir fatura</a>
+        <a class="ghost" href="/invoice.html?id=${order._id}" target="_blank" rel="noopener">Abrir fatura</a>
       </div>
     `;
     div.querySelector('button').addEventListener('click', () => viewOrder(order._id));
@@ -198,7 +212,7 @@ async function loadOrders() {
         <p><strong>Fatura #${invoice.invoiceNumber}</strong> - ${invoice.status}</p>
         <p>Total: ${invoice.amount} | Prazo: ${new Date(invoice.dueDate).toLocaleString()}</p>
         <div class="stacked-actions">
-          <a class="ghost" href="/invoice.html?id=${order._id}">Ver fatura</a>
+          <a class="ghost" href="/invoice.html?id=${order._id}" target="_blank" rel="noopener">Ver fatura</a>
           <button type="button" data-id="${order._id}" class="secondary">Baixar PDF</button>
         </div>
       `;
@@ -223,6 +237,15 @@ async function loadOrders() {
       deliveries.appendChild(row);
     }
   });
+
+  if (currentOrder) {
+    const found = data.orders.find((o) => o._id === currentOrder.order._id);
+    const inv = data.invoices.find((i) => i.order === currentOrder.order._id);
+    if (found && inv) {
+      currentOrder = { order: found, invoice: inv };
+      renderOrderDetails();
+    }
+  }
 }
 
 async function viewOrder(id) {

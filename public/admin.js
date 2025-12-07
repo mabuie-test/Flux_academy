@@ -4,6 +4,7 @@ let selectedOrder = null;
 let dashboardData = null;
 let serviceRequests = [];
 let filters = { status: 'all', invoice: 'all', search: '' };
+let refreshTimer = null;
 
 const modal = document.getElementById('confirm-overlay');
 const modalTitle = document.getElementById('confirm-title');
@@ -81,31 +82,51 @@ function toggleAdminView(authenticated) {
   if (authenticated) {
     loadAdminOrders();
     loadServices();
+    if (!refreshTimer) {
+      refreshTimer = setInterval(() => {
+        if (document.hidden) return;
+        loadAdminOrders(true);
+        if (selectedOrder) openOrder(selectedOrder.order._id, true);
+        loadServices(true);
+      }, 8000);
+    }
+  } else if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
   }
 }
 
-async function loadAdminOrders() {
+async function loadAdminOrders(silent = false) {
   const res = await fetch(`${apiBase}/admin/orders`, { headers: { Authorization: `Bearer ${token}` } });
   const data = await res.json();
+  if (!res.ok) {
+    if (!silent) toast(data.message || 'Erro ao carregar painel');
+    return;
+  }
   dashboardData = data;
   renderStats();
   renderOrders();
   renderAudit();
 }
 
-async function loadServices() {
+async function loadServices(silent = false) {
   const res = await fetch(`${apiBase}/admin/services`, { headers: { Authorization: `Bearer ${token}` } });
   const data = await res.json();
-  if (res.ok) {
-    serviceRequests = data.requests || [];
-    renderServices();
+  if (!res.ok) {
+    if (!silent) toast(data.message || 'Erro ao carregar pedidos especiais');
+    return;
   }
+  serviceRequests = data.requests || [];
+  renderServices();
 }
 
-async function openOrder(id) {
+async function openOrder(id, silent = false) {
   const res = await fetch(`${apiBase}/admin/orders/${id}`, { headers: { Authorization: `Bearer ${token}` } });
   const data = await res.json();
-  if (!res.ok) return toast(data.message || 'Erro ao abrir encomenda');
+  if (!res.ok) {
+    if (!silent) toast(data.message || 'Erro ao abrir encomenda');
+    return;
+  }
   selectedOrder = data;
   renderDetail();
 }
@@ -119,6 +140,7 @@ function renderDetail() {
     <p><strong>${order.workType}</strong> - ${order.area}</p>
     <p>Estado: ${order.status}</p>
     <p>Fatura #${invoice.invoiceNumber} (${invoice.status})</p>
+    <p><a class="ghost" target="_blank" rel="noopener" href="/invoice.html?id=${order._id}">Abrir página da fatura</a></p>
     <p>Materiais do cliente: ${order.hasMaterials ? 'Sim' : 'Não'}${
     order.hasMaterials && order.materialsUsagePercent ? ` (${order.materialsUsagePercent}% previsto)` : ''
   }</p>
@@ -307,6 +329,8 @@ function renderOrders() {
       </div>
       <div class="row-actions">
         <button data-id="${order._id}" class="ghost">Abrir</button>
+        ${invoice.invoiceNumber ? `<a class="ghost" target="_blank" rel="noopener" href="/invoice.html?id=${order._id}">Fatura</a>` : ''}
+        ${order.materialsFiles?.length ? `<a class="ghost" target="_blank" rel="noopener" href="/invoice.html?id=${order._id}#materiais">Materiais</a>` : ''}
       </div>
     `;
     div.querySelector('button').addEventListener('click', () => openOrder(order._id));
