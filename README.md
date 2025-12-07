@@ -49,6 +49,8 @@ npm start
 - Pedidos especiais de TCC e projetos práticos com faturação manual e trilha de auditoria.
 - Página dedicada de faturas com link de download em PDF e atalhos rápidos a partir do painel do cliente.
 - Página extra `/documents.html` para visualizar todas as faturas em nova aba e descarregar documentos finais enviados pelo admin.
+- Programa de afiliados: código único por utilizador, 18% de comissão por pedidos pagos de clientes indicados (campo opcional no formulário e resumo em `/` > “Programa de afiliados”).
+- Feedback pós-entrega: clientes classificam o trabalho e registam a nota obtida em `/documents.html`, com thread de respostas visível e respondida pelo admin.
 - Registo de administradores via `/api/auth/admin/signup` (opcionalmente protegido pelo cabeçalho `x-admin-setup-token` com o valor de `ADMIN_SETUP_TOKEN`). Consulte `registo.txt` para instruções passo-a-passo.
 
 ## Fluxo principal

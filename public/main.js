@@ -3,6 +3,8 @@ let authToken = localStorage.getItem('token') || '';
 let currentOrder = null;
 let currentQuote = null;
 let refreshHandle = null;
+const urlParams = new URLSearchParams(window.location.search);
+const referralParam = urlParams.get('ref');
 
 const modal = document.getElementById('confirm-overlay');
 const modalTitle = document.getElementById('confirm-title');
@@ -45,6 +47,12 @@ function toast(message) {
 
 const materialsExtra = document.getElementById('materials-extra');
 const materialsSelect = document.getElementById('has-materials');
+const referralInput = document.querySelector('input[name="referralCode"]');
+
+if (referralInput && referralParam) {
+  referralInput.value = referralParam;
+}
+
 function toggleMaterials(show) {
   if (!materialsExtra) return;
   materialsExtra.style.display = show ? 'block' : 'none';
@@ -246,6 +254,39 @@ async function loadOrders(silent = false) {
       renderOrderDetails();
     }
   }
+
+  loadAffiliatePanel();
+}
+
+async function loadAffiliatePanel() {
+  const panel = document.getElementById('affiliate-panel');
+  if (!panel) return;
+  const res = await fetch(`${apiBase}/orders/affiliate/summary`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    panel.innerHTML = '<p class="muted">Não foi possível carregar o programa de afiliados.</p>';
+    return;
+  }
+  panel.innerHTML = `
+    <div class="affiliate-card">
+      <div>
+        <p class="muted">Seu código</p>
+        <p class="code">${data.referralCode}</p>
+      </div>
+      <div>
+        <p class="muted">Ganhos pendentes</p>
+        <p class="highlight">${data.affiliateBalance?.toFixed(2) || '0.00'} MZN</p>
+      </div>
+      <div>
+        <p class="muted">Ganhos totais</p>
+        <p class="highlight">${data.affiliateTotalEarned?.toFixed(2) || '0.00'} MZN</p>
+      </div>
+    </div>
+    <p class="muted small">Pedidos pagos: ${data.paidOrders} · Em validação: ${data.pendingOrders}</p>
+    <p class="muted">Partilhe: <code>?ref=${data.referralCode}</code> ou insira o código no formulário do pedido.</p>
+  `;
 }
 
 async function viewOrder(id) {

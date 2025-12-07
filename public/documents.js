@@ -48,6 +48,7 @@ async function loadCollections(silent = false) {
   }
   renderInvoices(data.orders, data.invoices);
   renderDocuments(data.orders, data.invoices);
+  renderFeedback(data.orders, data.invoices);
 }
 
 function renderInvoices(orders, invoices) {
@@ -99,6 +100,110 @@ function renderDocuments(orders, invoices) {
   if (!holder.childElementCount) holder.innerHTML = '<p class="muted">Ainda não existem documentos finais disponíveis.</p>';
 }
 
+async function renderFeedback(orders, invoices) {
+  const holder = document.getElementById('feedback-collection');
+  if (!holder) return;
+  holder.innerHTML = '';
+  const eligible = orders.filter((o) => {
+    const inv = invoices.find((i) => i.order === o._id);
+    return o.status === 'CONCLUIDA' && inv?.status === 'PAGA' && o.finalFile;
+  });
+  if (!eligible.length) {
+    holder.innerHTML = '<p class="muted">Envie o comprovativo e aguarde a conclusão para avaliar.</p>';
+    return;
+  }
+
+  await Promise.all(
+    eligible.map(async (order) => {
+      const inv = invoices.find((i) => i.order === order._id) || {};
+      const res = await fetch(`${apiBase}/orders/${order._id}/feedback`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      const feedback = data.feedback || {};
+
+      const row = document.createElement('div');
+      row.classList.add('list-row');
+      row.innerHTML = `
+        <div>
+          <p><strong>${order.workType}</strong> — ${order.area}</p>
+          <p class="muted">Fatura #${inv.invoiceNumber || 'N/A'} · Trabalhos finais disponíveis</p>
+          <form class="feedback-form" data-order="${order._id}">
+            <label>Classificação (1-5)</label>
+            <input type="number" name="rating" min="1" max="5" value="${feedback.rating || ''}" />
+            <label>Nota obtida / observação</label>
+            <input type="text" name="gradeReceived" value="${feedback.gradeReceived || ''}" />
+            <label>Comentário</label>
+            <textarea name="comment" rows="2">${feedback.comment || ''}</textarea>
+            <div class="row-actions"><button type="submit">Guardar feedback</button></div>
+          </form>
+        </div>
+        <div class="feedback-thread" id="thread-${order._id}">
+          <p class="muted">Conversa com a equipa</p>
+        </div>
+      `;
+      holder.appendChild(row);
+
+      const thread = row.querySelector(`#thread-${order._id}`);
+      if (feedback.replies && feedback.replies.length) {
+        feedback.replies.forEach((r) => {
+          const bubble = document.createElement('div');
+          bubble.classList.add('bubble', r.from === 'admin' ? 'bubble-admin' : 'bubble-client');
+          bubble.innerHTML = `<p>${r.message}</p><span>${new Date(r.createdAt).toLocaleString()}</span>`;
+          thread.appendChild(bubble);
+        });
+      }
+
+      const replyForm = document.createElement('form');
+      replyForm.classList.add('inline-form');
+      replyForm.innerHTML = `
+        <input type="text" name="message" placeholder="Responder" required />
+        <button type="submit" class="ghost">Enviar</button>
+      `;
+      replyForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const message = replyForm.message.value;
+        const resp = await fetch(`${apiBase}/orders/${order._id}/feedback/reply`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ message }),
+        });
+        if (!resp.ok) {
+          const err = await resp.json();
+          return toast(err.message || 'Erro ao responder');
+        }
+        loadCollections(true);
+      });
+      thread.appendChild(replyForm);
+
+      const form = row.querySelector('.feedback-form');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const payload = Object.fromEntries(formData.entries());
+        const resp = await fetch(`${apiBase}/orders/${order._id}/feedback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+        const body = await resp.json();
+        if (resp.ok) {
+          toast('Feedback guardado.');
+          loadCollections(true);
+        } else {
+          toast(body.message || 'Erro ao guardar feedback');
+        }
+      });
+    })
+  );
+}
+
 async function downloadInvoicePdf(orderId, invoiceNumber) {
   try {
     const res = await fetch(`${apiBase}/orders/${orderId}/invoice/pdf`, { headers: { Authorization: `Bearer ${token}` } });
@@ -125,3 +230,4 @@ loadCollections();
 
 document.getElementById('refresh-invoices').addEventListener('click', () => loadCollections());
 document.getElementById('refresh-docs').addEventListener('click', () => loadCollections());
+document.getElementById('refresh-feedback').addEventListener('click', () => loadCollections());

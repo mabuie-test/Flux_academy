@@ -438,3 +438,62 @@ body.auth-page {
 .legal-page .card p {
   line-height: 1.6;
 }
+
+/* Afiliados e feedback */
+.affiliate-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.affiliate .code {
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.affiliate .highlight {
+  font-weight: 700;
+  color: #0b63e6;
+}
+
+.feedback-thread, .feedback-board .thread {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid #e0e7ff;
+  border-radius: 10px;
+  background: #f7f9ff;
+}
+
+.bubble {
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: #eef3ff;
+}
+
+.bubble-admin {
+  background: #0b63e6;
+  color: #fff;
+}
+
+.bubble span {
+  display: block;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.inline-form input {
+  flex: 1;
+}
+
+.feedback-board h4 {
+  margin-bottom: 4px;
+}

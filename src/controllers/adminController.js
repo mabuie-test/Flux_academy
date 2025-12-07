@@ -73,6 +73,14 @@ exports.listOrders = async (req, res) => {
         }),
         { total: 0, count: 0 }
       );
+    const affiliateTotals = orders.reduce(
+      (acc, o) => {
+        acc.total += o.referralCommission || 0;
+        acc.paid += o.referralPaid ? o.referralCommission || 0 : 0;
+        return acc;
+      },
+      { total: 0, paid: 0 }
+    );
     const auditSummary = {
       lastLogins: audits.filter((a) => ['SIGNIN', 'SIGNUP', 'SIGNUP_ADMIN'].includes(a.action)).length,
       paymentValidations: audits.filter((a) => a.action === 'VALIDAR_PAGAMENTO').length,
@@ -82,7 +90,7 @@ exports.listOrders = async (req, res) => {
       totalAudits: await Audit.countDocuments(),
     };
 
-    res.json({ orders, invoices, audits, statusCounts, invoiceStatusCounts, revenue, auditSummary });
+    res.json({ orders, invoices, audits, statusCounts, invoiceStatusCounts, revenue, auditSummary, affiliateTotals });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao listar encomendas', error: err.message });
   }
@@ -119,6 +127,16 @@ exports.validatePayment = async (req, res) => {
     order.status = 'EM_EXECUCAO';
     addOrderHistory(order, 'EM_EXECUCAO', 'Pagamento validado, trabalho em produção');
 
+    if (order.referrer && !order.referralPaid && order.referralCommission > 0) {
+      const refUser = await User.findById(order.referrer);
+      if (refUser) {
+        refUser.affiliateBalance += order.referralCommission;
+        refUser.affiliateTotalEarned += order.referralCommission;
+        await refUser.save();
+      }
+      order.referralPaid = true;
+    }
+
     await invoice.save();
     await order.save();
     await notifyInvoice(invoice, order, 'Pagamento validado');
@@ -129,6 +147,7 @@ exports.validatePayment = async (req, res) => {
         action: 'VALIDAR_PAGAMENTO',
         entityType: 'Order',
         entityId: order._id.toString(),
+        metadata: { referralPaid: order.referralPaid },
       },
       req
     );

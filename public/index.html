@@ -87,6 +87,8 @@
         <input type="date" name="deliveryDeadline" />
         <label>Descrição detalhada</label>
         <textarea name="description" rows="3"></textarea>
+        <label>Código de afiliado (opcional)</label>
+        <input type="text" name="referralCode" placeholder="Se alguém indicou você, coloque o código aqui" />
         <div class="inline-group">
           <label>Tens materiais didáticos fornecidos?</label>
           <select name="hasMaterials" id="has-materials">
@@ -167,6 +169,14 @@
       <h3>Gestão de faturas</h3>
       <p class="muted">Acompanhe todas as faturas em um único painel, com links para visualização dedicada e download em PDF.</p>
       <div id="invoice-list" class="list"></div>
+    </div>
+  </section>
+
+  <section class="container" id="affiliate-area">
+    <div class="card wide">
+      <h3>Programa de afiliados</h3>
+      <p class="muted">Ganhe 18% em dinheiro por cada trabalho realizado pelos clientes que indicar. Partilhe o seu código abaixo.</p>
+      <div id="affiliate-panel" class="affiliate"></div>
     </div>
   </section>
 

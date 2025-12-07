@@ -13,6 +13,7 @@ const {
   updateServiceRequest,
   broadcastEmail,
 } = require('../controllers/adminController');
+const { getFeedback, replyFeedback } = require('../controllers/feedbackController');
 
 const router = express.Router();
 
@@ -46,6 +47,8 @@ router.post('/orders/:id/validate-payment', auth, isAdmin, validatePayment);
 router.post('/orders/:id/reject-payment', auth, isAdmin, rejectPayment);
 router.post('/orders/:id/upload-work', auth, isAdmin, workUpload.single('finalWork'), uploadFinalWork);
 router.post('/orders/:id/expire', auth, isAdmin, expireInvoice);
+router.get('/orders/:id/feedback', auth, isAdmin, getFeedback);
+router.post('/orders/:id/feedback/reply', auth, isAdmin, replyFeedback);
 router.get('/services', auth, isAdmin, listServiceRequests);
 router.post('/services/:id', auth, isAdmin, updateServiceRequest);
 router.post('/broadcast', auth, isAdmin, broadcastEmail);

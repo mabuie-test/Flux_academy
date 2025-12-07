@@ -170,6 +170,7 @@ function renderDetail() {
       }
     </div>
     <div id="admin-timeline" class="timeline"></div>
+    <div id="admin-feedback" class="feedback-board"></div>
     <div class="row-actions">
       <button id="btn-validate">Validar pagamento</button>
       <button id="btn-reject" class="ghost">Rejeitar pagamento</button>
@@ -181,6 +182,7 @@ function renderDetail() {
   document.getElementById('btn-expire').addEventListener('click', () => adminAction('expire'));
   renderTimeline(order, invoice);
   bindFinalUpload();
+  renderAdminFeedback(order._id);
 }
 
 async function adminAction(action) {
@@ -229,6 +231,61 @@ function renderTimeline(order, invoice) {
     .join('');
 }
 
+async function renderAdminFeedback(orderId) {
+  const holder = document.getElementById('admin-feedback');
+  if (!holder) return;
+  holder.innerHTML = '<p class="muted">A carregar feedback...</p>';
+  const res = await fetch(`${apiBase}/admin/orders/${orderId}/feedback`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    holder.innerHTML = '<p class="muted">Sem feedback enviado ainda.</p>';
+    return;
+  }
+  const feedback = data.feedback;
+  if (!feedback) {
+    holder.innerHTML = '<p class="muted">Sem feedback enviado ainda.</p>';
+    return;
+  }
+
+  holder.innerHTML = `
+    <h4>Feedback do cliente</h4>
+    <p>Classificação: ${feedback.rating || 'N/A'} | Nota obtida: ${feedback.gradeReceived || 'N/A'}</p>
+    <p>${feedback.comment || 'Sem comentário'}</p>
+    <div class="thread" id="admin-thread"></div>
+    <form id="admin-feedback-reply" class="inline-form">
+      <input type="text" name="message" placeholder="Responder ao cliente" required />
+      <button type="submit">Enviar resposta</button>
+    </form>
+  `;
+
+  const thread = holder.querySelector('#admin-thread');
+  (feedback.replies || []).forEach((r) => {
+    const bubble = document.createElement('div');
+    bubble.classList.add('bubble', r.from === 'admin' ? 'bubble-admin' : 'bubble-client');
+    bubble.innerHTML = `<p>${r.message}</p><span>${new Date(r.createdAt).toLocaleString()}</span>`;
+    thread.appendChild(bubble);
+  });
+
+  holder.querySelector('#admin-feedback-reply').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = e.target.message.value;
+    const resp = await fetch(`${apiBase}/admin/orders/${orderId}/feedback/reply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ message }),
+    });
+    const body = await resp.json();
+    if (resp.ok) {
+      toast('Resposta enviada');
+      renderAdminFeedback(orderId);
+    } else {
+      toast(body.message || 'Erro ao responder');
+    }
+  });
+}
+
 function renderStats() {
   const holder = document.getElementById('admin-stats');
   if (!dashboardData) return;
@@ -236,6 +293,7 @@ function renderStats() {
   const awaiting = dashboardData.orders.filter((o) => o.status === 'PAGAMENTO_EM_VALIDACAO').length;
   const executing = dashboardData.orders.filter((o) => o.status === 'EM_EXECUCAO').length;
   const finished = dashboardData.orders.filter((o) => o.status === 'CONCLUIDA').length;
+  const affiliate = dashboardData.affiliateTotals || {};
   holder.innerHTML = `
     <div class="pill">Total: ${total}</div>
     <div class="pill">Em validação: ${awaiting}</div>
@@ -243,6 +301,7 @@ function renderStats() {
     <div class="pill">Concluídas: ${finished}</div>
     <div class="pill">Faturas pagas: ${dashboardData.invoiceStatusCounts?.PAGA || 0}</div>
     <div class="pill">Receita confirmada: ${dashboardData.revenue?.total || 0}</div>
+    <div class="pill">Comissões afiliados: ${affiliate.paid?.toFixed?.(2) || 0}</div>
   `;
 
   const mini = document.getElementById('admin-mini-stats');

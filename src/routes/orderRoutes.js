@@ -11,6 +11,12 @@ const {
   quotePrice,
   downloadInvoicePdf,
 } = require('../controllers/orderController');
+const {
+  submitFeedback,
+  getFeedback,
+  replyFeedback,
+  getAffiliateSummary,
+} = require('../controllers/feedbackController');
 
 const router = express.Router();
 
@@ -62,10 +68,14 @@ const orderUpload = multer({
 
 router.post('/', auth, orderUpload.array('materials', 5), createOrder);
 router.get('/', auth, getOrders);
+router.get('/affiliate/summary', auth, getAffiliateSummary);
 router.post('/quote', auth, quotePrice);
+router.get('/:id/feedback', auth, getFeedback);
+router.post('/:id/feedback', auth, submitFeedback);
+router.post('/:id/feedback/reply', auth, replyFeedback);
+router.get('/:id/invoice/pdf', auth, downloadInvoicePdf);
 router.get('/:id', auth, getOrderById);
 router.post('/:id/upload-proof', auth, proofUpload.single('proof'), uploadProof);
 router.get('/:id/download-work', auth, downloadFinal);
-router.get('/:id/invoice/pdf', auth, downloadInvoicePdf);
 
 module.exports = router;

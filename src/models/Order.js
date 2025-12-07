@@ -18,6 +18,9 @@ const OrderSchema = new mongoose.Schema(
     hasMaterials: { type: Boolean, default: false },
     materialsUsagePercent: { type: Number, min: 0, max: 100 },
     materialsFiles: [{ type: String }],
+    referrer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    referralCommission: { type: Number, default: 0 },
+    referralPaid: { type: Boolean, default: false },
     status: {
       type: String,
       enum: [

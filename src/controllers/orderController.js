@@ -73,6 +73,7 @@ exports.createOrder = async (req, res) => {
       deliveryDeadline,
       hasMaterials,
       materialsUsagePercent,
+      referralCode,
     } = req.body;
 
     const validationError = validatePayload({
@@ -95,6 +96,16 @@ exports.createOrder = async (req, res) => {
 
     const priceBreakdown = calculatePrice({ pages, academicLevel, complexity, urgency });
     const paymentDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    let referrer;
+    let referralCommission = 0;
+
+    if (referralCode) {
+      const found = await User.findOne({ referralCode: referralCode.trim() });
+      if (found && found._id.toString() !== req.user._id.toString()) {
+        referrer = found._id;
+        referralCommission = Math.round(priceBreakdown.total * 0.18 * 100) / 100;
+      }
+    }
 
     const order = await Order.create({
       user: req.user._id,
@@ -108,6 +119,8 @@ exports.createOrder = async (req, res) => {
       description,
       deliveryDeadline,
       paymentDeadline,
+      referrer,
+      referralCommission,
       hasMaterials: parsedHasMaterials,
       materialsUsagePercent: parsedHasMaterials ? parsedMaterialsUsage : undefined,
       materialsFiles,
@@ -137,7 +150,7 @@ exports.createOrder = async (req, res) => {
         action: 'CRIACAO_ENCOMENDA',
         entityType: 'Order',
         entityId: order._id.toString(),
-        metadata: { invoice: invoice.invoiceNumber },
+        metadata: { invoice: invoice.invoiceNumber, referralCommission },
       },
       req
     );
