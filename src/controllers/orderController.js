@@ -47,11 +47,15 @@ function validatePayload({
 async function notifyInvoice(invoice, order, label) {
   const user = await User.findById(order.user);
   if (user) {
-    await sendMail({
-      to: user.email,
-      subject: `Atualização da fatura #${invoice.invoiceNumber}`,
-      html: invoiceEmailTemplate(invoice, order, label),
-    });
+    try {
+      await sendMail({
+        to: user.email,
+        subject: `Atualização da fatura #${invoice.invoiceNumber}`,
+        html: invoiceEmailTemplate(invoice, order, label),
+      });
+    } catch (err) {
+      console.error('Falha ao enviar email de fatura', err.message);
+    }
   }
 }
 

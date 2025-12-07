@@ -377,3 +377,23 @@ body.auth-page {
   color: #90cdf4;
   text-decoration: underline;
 }
+
+.upload-card {
+  background: #f5f8ff;
+  border: 1px solid #d9e5ff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 12px 0;
+}
+
+.upload-card summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #1c3faa;
+}
+
+.upload-card form {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}

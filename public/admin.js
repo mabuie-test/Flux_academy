@@ -102,6 +102,7 @@ async function openOrder(id) {
 function renderDetail() {
   if (!selectedOrder) return;
   const { order, invoice } = selectedOrder;
+  const canUploadFinal = invoice.status === 'PAGA' && order.status === 'EM_EXECUCAO';
   const box = document.getElementById('admin-detail');
   box.innerHTML = `
     <p><strong>${order.workType}</strong> - ${order.area}</p>
@@ -119,6 +120,22 @@ function renderDetail() {
     }
     <p>Comprovativo: ${invoice.proofFile ? `<a href="/uploads/comprovativos/${invoice.proofFile}" target="_blank">Ver ficheiro</a>` : 'N/A'}</p>
     ${invoice.rejectionReason ? `<p class="alert">Última rejeição: ${invoice.rejectionReason}</p>` : ''}
+    <div class="upload-card" id="final-upload-area">
+      ${
+        canUploadFinal
+          ? `
+        <details open>
+          <summary>Disponibilizar trabalho final</summary>
+          <form id="final-work-form" enctype="multipart/form-data">
+            <label>Ficheiro final (.pdf, .docx)</label>
+            <input type="file" name="finalWork" required />
+            <button type="submit">Submeter ao cliente</button>
+          </form>
+        </details>
+      `
+          : '<p class="muted">O upload final só aparece quando a fatura está paga e o pedido em execução.</p>'
+      }
+    </div>
     <div id="admin-timeline" class="timeline"></div>
     <div class="row-actions">
       <button id="btn-validate">Validar pagamento</button>
@@ -130,6 +147,7 @@ function renderDetail() {
   document.getElementById('btn-reject').addEventListener('click', () => adminAction('reject-payment'));
   document.getElementById('btn-expire').addEventListener('click', () => adminAction('expire'));
   renderTimeline(order, invoice);
+  bindFinalUpload();
 }
 
 async function adminAction(action) {
@@ -314,28 +332,32 @@ function renderAudit() {
   }
 }
 
-const finalWorkForm = document.getElementById('final-work-form');
-finalWorkForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if (!selectedOrder) return;
-  const confirm = await showConfirm({ title: 'Enviar trabalho final?', text: 'Confirme antes de disponibilizar ao cliente.' });
-  if (!confirm) return;
-  const formData = new FormData(finalWorkForm);
-  const res = await fetch(`${apiBase}/admin/orders/${selectedOrder.order._id}/upload-work`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
+function bindFinalUpload() {
+  const finalWorkForm = document.getElementById('final-work-form');
+  if (!finalWorkForm || finalWorkForm.dataset.bound) return;
+  finalWorkForm.dataset.bound = 'true';
+  finalWorkForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selectedOrder) return;
+    const confirm = await showConfirm({ title: 'Enviar trabalho final?', text: 'Confirme antes de disponibilizar ao cliente.' });
+    if (!confirm) return;
+    const formData = new FormData(finalWorkForm);
+    const res = await fetch(`${apiBase}/admin/orders/${selectedOrder.order._id}/upload-work`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (res.ok) {
+      toast('Trabalho final carregado e notificação enviada ao cliente.');
+      selectedOrder.order = data.order;
+      renderDetail();
+      loadAdminOrders();
+    } else {
+      toast(data.message || 'Erro ao subir ficheiro');
+    }
   });
-  const data = await res.json();
-  if (res.ok) {
-    toast('Trabalho final carregado e notificação enviada ao cliente.');
-    selectedOrder.order = data.order;
-    renderDetail();
-    loadAdminOrders();
-  } else {
-    toast(data.message || 'Erro ao subir ficheiro');
-  }
-});
+}
 
 if (token) {
   document.getElementById('admin-panel').style.display = 'flex';
