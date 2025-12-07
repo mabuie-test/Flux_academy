@@ -44,7 +44,10 @@ function toast(message) {
   modalCancel.onclick = close;
 }
 
-document.getElementById('admin-login').addEventListener('submit', async (e) => {
+const adminLoginForm = document.getElementById('admin-login');
+const adminLoginCard = adminLoginForm?.closest('.card');
+
+adminLoginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const payload = Object.fromEntries(new FormData(e.target).entries());
   const res = await fetch(`${apiBase}/auth/signin`, {
@@ -56,9 +59,7 @@ document.getElementById('admin-login').addEventListener('submit', async (e) => {
   if (data.token && data.user.role === 'admin') {
     token = data.token;
     localStorage.setItem('adminToken', token);
-    document.getElementById('admin-panel').style.display = 'flex';
-    loadAdminOrders();
-    loadServices();
+    toggleAdminView(true);
   } else {
     toast('Credenciais inválidas ou não é admin');
   }
@@ -69,9 +70,19 @@ document.getElementById('admin-logout').addEventListener('click', async () => {
   if (!confirm) return;
   token = '';
   localStorage.removeItem('adminToken');
-  document.getElementById('admin-panel').style.display = 'none';
+  toggleAdminView(false);
   toast('Sessão de administrador terminada.');
 });
+
+function toggleAdminView(authenticated) {
+  const panel = document.getElementById('admin-panel');
+  if (panel) panel.style.display = authenticated ? 'flex' : 'none';
+  if (adminLoginCard) adminLoginCard.style.display = authenticated ? 'none' : 'block';
+  if (authenticated) {
+    loadAdminOrders();
+    loadServices();
+  }
+}
 
 async function loadAdminOrders() {
   const res = await fetch(`${apiBase}/admin/orders`, { headers: { Authorization: `Bearer ${token}` } });
@@ -113,8 +124,8 @@ function renderDetail() {
   }</p>
     ${
       order.materialsFiles?.length
-        ? `<div class="attachments">${order.materialsFiles
-            .map((f) => `<a href="/uploads/materiais/${f}" target="_blank">${f}</a>`)
+        ? `<div class="attachments"><strong>Materiais do cliente:</strong> ${order.materialsFiles
+            .map((f) => `<a href="/uploads/materiais/${f}" target="_blank" download>${f}</a>`)
             .join('')}</div>`
         : ''
     }
@@ -292,6 +303,7 @@ function renderOrders() {
         <p><strong>${order.workType}</strong> - ${order.area} <span class="badge">${order.status}</span></p>
         <p class="muted">Cliente: ${order.user.name} (${order.user.email})</p>
         <p class="muted">Fatura #${invoice.invoiceNumber || 'N/A'} - ${invoice.status || 'N/A'}</p>
+        ${order.materialsFiles?.length ? `<p class="small">Materiais do cliente: ${order.materialsFiles.length} ficheiros</p>` : ''}
       </div>
       <div class="row-actions">
         <button data-id="${order._id}" class="ghost">Abrir</button>
@@ -359,11 +371,7 @@ function bindFinalUpload() {
   });
 }
 
-if (token) {
-  document.getElementById('admin-panel').style.display = 'flex';
-  loadAdminOrders();
-  loadServices();
-}
+toggleAdminView(Boolean(token));
 
 const broadcastForm = document.getElementById('broadcast-form');
 if (broadcastForm) {

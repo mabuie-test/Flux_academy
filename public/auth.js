@@ -27,6 +27,9 @@ const signupForm = document.getElementById('signup-form');
 if (signupForm) {
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!signupForm.querySelector('input[name="terms"]')?.checked) {
+      return alert('É necessário aceitar os Termos e Condições.');
+    }
     const payload = Object.fromEntries(new FormData(signupForm).entries());
     const res = await fetch(`${apiBase}/auth/signup`, {
       method: 'POST',
@@ -46,6 +49,9 @@ const signinForm = document.getElementById('signin-form');
 if (signinForm) {
   signinForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!signinForm.querySelector('input[name="terms"]')?.checked) {
+      return alert('É necessário aceitar os Termos e Condições.');
+    }
     const payload = Object.fromEntries(new FormData(signinForm).entries());
     const res = await fetch(`${apiBase}/auth/signin`, {
       method: 'POST',

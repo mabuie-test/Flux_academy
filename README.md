@@ -45,6 +45,7 @@ npm start
 - `/api/orders/quote` – endpoint para simular preços em tempo real.
 - Uploads protegidos com limites (5MB comprovativos, 15MB trabalhos finais) e formatos validados (pdf/jpg/png para comprovativos; pdf/doc/docx para trabalhos).
 - Emails automáticos cobrem criação/alteração de faturas, recuperação de senha por token, entrega final, pedidos especiais e disparo em massa pelo admin.
+- Termos e Condições disponíveis em `/terms.html`; aceitação obrigatória nos formulários de login/registo.
 - Pedidos especiais de TCC e projetos práticos com faturação manual e trilha de auditoria.
 - Página dedicada de faturas com link de download em PDF e atalhos rápidos a partir do painel do cliente.
 - Registo de administradores via `/api/auth/admin/signup` (opcionalmente protegido pelo cabeçalho `x-admin-setup-token` com o valor de `ADMIN_SETUP_TOKEN`). Consulte `registo.txt` para instruções passo-a-passo.

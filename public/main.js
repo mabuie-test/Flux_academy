@@ -60,6 +60,8 @@ if (materialsSelect) {
 function updateNav() {
   document.querySelectorAll('.anon-only').forEach((el) => (el.style.display = authToken ? 'none' : 'inline-flex'));
   document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
+  document.querySelectorAll('.auth-hide').forEach((el) => (el.style.display = authToken ? 'none' : 'flex'));
+  document.querySelectorAll('.auth-show').forEach((el) => (el.style.display = authToken ? 'flex' : 'none'));
 }
 
 function clearSession() {
@@ -172,6 +174,8 @@ async function loadOrders() {
   list.innerHTML = '';
   const invoiceList = document.getElementById('invoice-list');
   if (invoiceList) invoiceList.innerHTML = '';
+  const deliveries = document.getElementById('deliveries-list');
+  if (deliveries) deliveries.innerHTML = '';
   data.orders.forEach((order) => {
     const invoice = data.invoices.find((i) => i.order === order._id) || {};
     const div = document.createElement('div');
@@ -202,6 +206,21 @@ async function loadOrders() {
         downloadInvoicePdf(order._id, invoice.invoiceNumber);
       });
       invoiceList.appendChild(invEl);
+    }
+
+    if (deliveries && order.status === 'CONCLUIDA' && invoice.status === 'PAGA' && order.finalFile) {
+      const row = document.createElement('div');
+      row.classList.add('list-row');
+      row.innerHTML = `
+        <div>
+          <p><strong>${order.workType}</strong> - ${order.area}</p>
+          <p class="muted">Fatura #${invoice.invoiceNumber} | Entrega final pronta</p>
+        </div>
+        <div class="row-actions">
+          <a class="primary" href="/uploads/trabalhos/${order.finalFile}" download>Baixar documento</a>
+        </div>
+      `;
+      deliveries.appendChild(row);
     }
   });
 }

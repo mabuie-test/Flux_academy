@@ -397,3 +397,23 @@ body.auth-page {
   display: grid;
   gap: 8px;
 }
+
+.checkbox-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.checkbox-row input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+}
+
+.legal-page header {
+  margin-bottom: 20px;
+}
+
+.legal-page .card p {
+  line-height: 1.6;
+}

@@ -13,6 +13,7 @@
       <a class="anon-only" href="/login.html">Login</a>
       <a class="anon-only" href="/register.html">Registo</a>
       <a href="/admin.html">Admin</a>
+      <a href="/terms.html">Termos</a>
       <button id="logout" class="ghost auth-only">Terminar sessão</button>
     </div>
   </header>
@@ -113,6 +114,7 @@
     <button onclick="document.getElementById('tcc-card').scrollIntoView({behavior:'smooth'})">Acompanhamento TCC</button>
     <button onclick="document.getElementById('special-card').scrollIntoView({behavior:'smooth'})">Encomendas práticas</button>
     <button onclick="document.getElementById('invoice-area').scrollIntoView({behavior:'smooth'})">Gestão de faturas</button>
+    <button onclick="document.getElementById('deliveries-area').scrollIntoView({behavior:'smooth'})">Documentos recebidos</button>
   </nav>
 
   <section id="order-details" class="container" style="display:none;">
@@ -163,6 +165,14 @@
       <h3>Gestão de faturas</h3>
       <p class="muted">Acompanhe todas as faturas em um único painel, com links para visualização dedicada e download em PDF.</p>
       <div id="invoice-list" class="list"></div>
+    </div>
+  </section>
+
+  <section class="container" id="deliveries-area">
+    <div class="card wide">
+      <h3>Documentos enviados pelo admin</h3>
+      <p class="muted">Quando a fatura estiver paga e o pedido concluído, o trabalho final aparece aqui para download.</p>
+      <div id="deliveries-list" class="list"></div>
     </div>
   </section>
 
