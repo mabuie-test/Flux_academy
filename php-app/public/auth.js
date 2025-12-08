@@ -1,6 +1,16 @@
 const apiBase = '/api';
 let authToken = localStorage.getItem('token') || '';
 
+function captureReferral() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('ref');
+  if (code) {
+    localStorage.setItem('referral_ref', code);
+  }
+}
+
+captureReferral();
+
 function toggleNav() {
   document.querySelectorAll('.anon-only').forEach((el) => (el.style.display = authToken ? 'none' : 'inline-flex'));
   document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
@@ -11,6 +21,16 @@ function toggleNav() {
       localStorage.removeItem('token');
       toggleNav();
     };
+  }
+}
+
+function renderReferralTag() {
+  const tag = document.getElementById('referral-indicator');
+  if (!tag) return;
+  const code = localStorage.getItem('referral_ref');
+  if (code) {
+    tag.textContent = `Indicação aplicada: ${code}`;
+    tag.classList.remove('hidden');
   }
 }
 
@@ -28,6 +48,8 @@ if (signupForm) {
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const payload = Object.fromEntries(new FormData(signupForm).entries());
+    const ref = localStorage.getItem('referral_ref');
+    if (ref) payload.referred_by = ref;
     const res = await fetch(`${apiBase}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -62,6 +84,7 @@ if (signinForm) {
 }
 
 toggleNav();
+renderReferralTag();
 
 if (authToken && window.location.pathname !== '/') {
   window.location.href = '/';

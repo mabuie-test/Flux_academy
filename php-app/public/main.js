@@ -1,6 +1,21 @@
 const apiBase = '/api';
 let authToken = localStorage.getItem('token') || '';
 
+function captureReferralAttribution() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  if (ref) {
+    localStorage.setItem('referral_ref', ref);
+    const banner = document.getElementById('referral-banner');
+    if (banner) {
+      banner.textContent = `Ligação de indicação aplicada: ${ref}`;
+      banner.classList.add('pill');
+    }
+  }
+}
+
+captureReferralAttribution();
+
 function showToast(text) {
   const zone = document.getElementById('feedback');
   if (zone) {
@@ -149,21 +164,26 @@ if (document.getElementById('orders-list')) {
 
 async function loadAffiliate() {
   if (!requireAuth()) return;
-  try {
-    const res = await fetch(`${apiBase}/affiliates/summary`, { headers: { Authorization: `Bearer ${authToken}` } });
-    const data = await res.json();
-    const box = document.getElementById('affiliate-panel');
-    if (!box) return;
-    if (!res.ok) throw new Error(data.message || 'Erro no programa de afiliados');
-    const commissions = data.commissions || [];
-    const payouts = data.payouts || [];
+    try {
+      const res = await fetch(`${apiBase}/affiliates/summary`, { headers: { Authorization: `Bearer ${authToken}` } });
+      const data = await res.json();
+      const box = document.getElementById('affiliate-panel');
+      if (!box) return;
+      if (!res.ok) throw new Error(data.message || 'Erro no programa de afiliados');
+      const shareLink = data.code ? `${window.location.origin}/register.html?ref=${data.code}` : '';
+      const commissions = data.commissions || [];
+      const payouts = data.payouts || [];
     box.innerHTML = `
       <div class="pill">O seu código: <strong>${data.code || '—'}</strong></div>
-      <div class="grid metrics">
-        <div><p class="muted">Aguardando validação</p><h4>${data.totals.pending} MZN</h4></div>
-        <div><p class="muted">Liberado</p><h4>${data.totals.approved} MZN</h4></div>
-        <div><p class="muted">Pago</p><h4>${data.totals.paid} MZN</h4></div>
-      </div>
+        <div class="share-row">
+          <input id="share-link" value="${shareLink}" ${shareLink ? '' : 'placeholder="Sem código disponível"'} readonly />
+          <button class="ghost" id="copy-share" ${shareLink ? '' : 'disabled'}>Copiar link</button>
+        </div>
+        <div class="grid metrics">
+          <div><p class="muted">Aguardando validação</p><h4>${data.totals.pending} MZN</h4></div>
+          <div><p class="muted">Liberado</p><h4>${data.totals.approved} MZN</h4></div>
+          <div><p class="muted">Pago</p><h4>${data.totals.paid} MZN</h4></div>
+        </div>
       <button class="primary" id="request-payout">Pedir levantamento</button>
       <h4>Comissões recentes</h4>
       <div class="list">${commissions.map((c) => `<div class="list-item"><div>#${c.order_id} · ${c.amount} MZN</div><span class="badge">${c.status}</span></div>`).join('') || '<p class="muted">Sem comissões ainda</p>'}</div>
@@ -172,6 +192,13 @@ async function loadAffiliate() {
     `;
     const payoutBtn = document.getElementById('request-payout');
     if (payoutBtn) payoutBtn.onclick = () => requestPayout();
+    const copyBtn = document.getElementById('copy-share');
+    if (copyBtn && shareLink) {
+      copyBtn.onclick = async () => {
+        await navigator.clipboard.writeText(shareLink);
+        showToast('Link de afiliado copiado.');
+      };
+    }
   } catch (err) {
     showToast(err.message);
   }

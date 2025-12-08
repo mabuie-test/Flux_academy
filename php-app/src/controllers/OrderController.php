@@ -11,6 +11,7 @@ use App\Models\Invoice;
 use App\Models\Feedback;
 use App\Models\AffiliateCommission;
 use App\Models\AffiliatePayout;
+use App\Models\User;
 use App\Config\Config;
 
 class OrderController
@@ -49,6 +50,11 @@ class OrderController
             }
         }
 
+        $refCode = $user['referred_by'] ?? ($data['referral_code'] ?? null);
+        if ($refCode && !User::findByReferralCode($refCode)) {
+            $refCode = null;
+        }
+
         $orderId = Order::create([
             'user_id' => $user['id'],
             'tipo' => $data['tipo'],
@@ -61,7 +67,7 @@ class OrderController
             'descricao' => $data['descricao'] ?? '',
             'estado' => 'PENDENTE_PAGAMENTO',
             'prazo_entrega' => $data['prazo_entrega'] ?? null,
-            'referred_by_code' => $data['referral_code'] ?? ($user['referred_by'] ?? null),
+            'referred_by_code' => $refCode,
             'materiais_info' => $data['materiais_info'] ?? null,
             'materiais_percentual' => $data['materiais_percentual'] ?? null,
             'materiais_uploads' => $materialsFiles ? json_encode($materialsFiles) : null,

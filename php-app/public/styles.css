@@ -5,6 +5,10 @@ body {
   color: #eef3fb;
   min-height: 100vh;
 }
+
+.hidden {
+  display: none !important;
+}
 header {
   background: #0d2f6c;
   padding: 20px;
@@ -35,6 +39,20 @@ header h1 {
   padding: 10px;
   border-radius: 8px;
   font-weight: 700;
+}
+.share-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0;
+}
+.share-row input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #eef3fb;
 }
 .proof {
   display: flex;

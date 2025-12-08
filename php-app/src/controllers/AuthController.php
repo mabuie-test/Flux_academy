@@ -19,6 +19,14 @@ class AuthController
             Response::json(['message' => 'Email já registado'], 400);
             return;
         }
+        if (!empty($data['referred_by'])) {
+            $referrer = User::findByReferralCode($data['referred_by']);
+            if (!$referrer) {
+                Response::json(['message' => 'Código de indicação inválido'], 400);
+                return;
+            }
+            $data['referred_by'] = $referrer['referral_code'];
+        }
         $role = in_array($data['role'] ?? 'cliente', ['cliente', 'admin'], true) ? $data['role'] : 'cliente';
         $userId = User::create([
             'name' => $data['name'],

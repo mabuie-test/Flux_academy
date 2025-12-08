@@ -6,6 +6,22 @@ use PDO;
 
 class User
 {
+    public static function findByReferralCode(string $code): ?array
+    {
+        $stmt = Database::pdo()->prepare('SELECT * FROM users WHERE referral_code = :code LIMIT 1');
+        $stmt->execute([':code' => $code]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    private static function generateReferralCode(): string
+    {
+        do {
+            $candidate = strtoupper(bin2hex(random_bytes(4)));
+        } while (self::findByReferralCode($candidate));
+        return $candidate;
+    }
+
     public static function create(array $data): int
     {
         $pdo = Database::pdo();
@@ -15,7 +31,7 @@ class User
             ':email' => $data['email'],
             ':password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
             ':role' => $data['role'] ?? 'cliente',
-            ':referral_code' => $data['referral_code'] ?? bin2hex(random_bytes(4)),
+            ':referral_code' => $data['referral_code'] ?? self::generateReferralCode(),
             ':referred_by' => $data['referred_by'] ?? null,
         ]);
         return (int) $pdo->lastInsertId();

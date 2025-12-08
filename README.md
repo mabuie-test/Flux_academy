@@ -55,6 +55,12 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 
 Autenticação: envie `Authorization: Bearer <token>` devolvido no login/registo.
 
+### Programa de afiliados por link
+- Cada utilizador recebe um `referral_code` único e partilhável (ex.: `https://seu-dominio/register.html?ref=ABCD1234`).
+- Se o visitante chegar com `?ref=CODE`, o código fica guardado no navegador e é aplicado automaticamente no registo.
+- Depois de registado, todas as encomendas desse cliente usam o `referred_by` guardado, garantindo 18% de comissão contínua para o dono do link em cada pagamento validado.
+- No painel do cliente, o bloco de afiliados mostra o link pronto para copiar e acompanhar saldos/levantamentos.
+
 Preço base actual: **35 MZN** por página (configurável via `BASE_PRICE_PER_PAGE` no `.env`). Multiplicadores seguem o helper `php-app/src/helpers/pricing.php`.
 
 ## Estrutura
