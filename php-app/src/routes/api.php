@@ -2,6 +2,7 @@
 use App\Controllers\AuthController;
 use App\Controllers\OrderController;
 use App\Controllers\AdminController;
+use App\Controllers\ServiceController;
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
@@ -36,6 +37,10 @@ if ($uri === '/api/affiliates/summary' && $method === 'GET') {
 }
 if ($uri === '/api/affiliates/request-payout' && $method === 'POST') {
     OrderController::requestPayout();
+    return;
+}
+if ($uri === '/api/services' && $method === 'POST') {
+    ServiceController::create();
     return;
 }
 if ($uri === '/api/orders/proof' && $method === 'POST') {
@@ -100,6 +105,14 @@ if ($uri === '/api/admin/metrics' && $method === 'GET') {
 }
 if ($uri === '/api/admin/audits' && $method === 'GET') {
     AdminController::audits();
+    return;
+}
+if ($uri === '/api/admin/services' && $method === 'GET') {
+    ServiceController::list();
+    return;
+}
+if ($uri === '/api/admin/services/update' && $method === 'POST') {
+    ServiceController::updateStatus();
     return;
 }
 

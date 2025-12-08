@@ -224,3 +224,37 @@ async function requestPayout() {
 if (document.getElementById('affiliate-panel')) {
   loadAffiliate();
 }
+
+const serviceForm = document.getElementById('service-form');
+if (serviceForm) {
+  serviceForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!requireAuth()) return;
+    const raw = new FormData(serviceForm);
+    const payload = new FormData();
+    ['categoria', 'contact_name', 'contact_email', 'contact_phone', 'detalhes', 'norma_preferida', 'software_preferido'].forEach((f) => {
+      if (raw.get(f)) payload.set(f, raw.get(f));
+    });
+    if (serviceForm.querySelector('input[name="attachment"]')?.files?.length) {
+      payload.append('attachment', serviceForm.querySelector('input[name="attachment"]').files[0]);
+    }
+    try {
+      const res = await fetch(`${apiBase}/services`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}` }, body: payload });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Erro ao registar serviço');
+      showToast('Pedido especializado enviado.');
+      serviceForm.reset();
+    } catch (err) {
+      showToast(err.message);
+    }
+  });
+}
+
+document.querySelectorAll('[data-service-type]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const type = btn.getAttribute('data-service-type');
+    const select = document.getElementById('service-type');
+    if (select) select.value = type;
+    document.getElementById('service-card')?.scrollIntoView({ behavior: 'smooth' });
+  });
+});

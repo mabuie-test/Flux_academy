@@ -552,3 +552,20 @@ canvas {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
 }
+
+.pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.pill-list button {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--muted);
+  background: white;
+  color: var(--text);
+  cursor: pointer;
+}
+.pill-list button:hover {
+  background: #e5edff;
+}

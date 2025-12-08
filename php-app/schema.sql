@@ -95,3 +95,20 @@ CREATE TABLE feedbacks (
   FOREIGN KEY (order_id) REFERENCES orders(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE service_requests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
+  categoria VARCHAR(100) NOT NULL,
+  contact_name VARCHAR(150) NOT NULL,
+  contact_email VARCHAR(150) NOT NULL,
+  contact_phone VARCHAR(80) NULL,
+  norma_preferida VARCHAR(50) NULL,
+  software_preferido VARCHAR(50) NULL,
+  detalhes TEXT,
+  attachment VARCHAR(255) NULL,
+  status VARCHAR(50) DEFAULT 'NOVO',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);

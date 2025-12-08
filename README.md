@@ -40,6 +40,7 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 - `POST /api/orders/feedback` — avaliação pós-entrega (rating, nota, comentário)
 - `GET  /api/affiliates/summary` — comissões, saldo e pedidos de levantamento do afiliado
 - `POST /api/affiliates/request-payout` — solicitar levantamento do saldo aprovado
+- `POST /api/services` — pedidos de serviços especializados (revisão, estatística, apresentações, CV, plágio)
 - `GET  /api/orders` — listar encomendas do cliente autenticado
 - `GET  /api/orders/{id}` — detalhe de encomenda (cliente dono ou admin)
 - `GET  /api/admin/orders` — lista completa para administradores
@@ -52,6 +53,7 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 - `GET /api/admin/payouts` — pedidos de levantamento dos afiliados
 - `POST /api/admin/payouts/update` — aprovar ou rejeitar levantamentos
 - `GET /api/admin/audits` — registo recente de operações sensíveis
+- `GET/POST /api/admin/services` — acompanhar pedidos de serviços especializados e atualizar estado
 
 Autenticação: envie `Authorization: Bearer <token>` devolvido no login/registo.
 
@@ -69,7 +71,20 @@ Preço base actual: **35 MZN** por página (configurável via `BASE_PRICE_PER_PA
 - `php-app/schema.sql` — tabelas MySQL (users, orders, invoices, audits, afiliados/payouts, etc.).
 - Tabelas adicionais: `affiliate_commissions` para créditos de referência (18%) e `feedbacks` para avaliações pós-entrega.
 - Campos recentes: `orders.referred_by_code` guarda o código usado em cada pedido; `affiliate_payouts` tem método, notas e responsável pela aprovação.
+- Nova tabela `service_requests` acompanha revisões linguísticas, estatística, apresentações, CV/cartas e verificação de plágio (com anexos opcionais) com fluxo de estado para o admin.
 - `registo.txt` — guia rápido de registo de administradores via API.
+
+## Serviços especializados disponíveis
+- Revisão linguística com normalização (APA, ABNT, MLA, Chicago, Vancouver, IEEE).
+- Consultoria estatística (SPSS/R/Python) e visualização de dados.
+- Preparação de apresentações e defesas (slides e roteiros).
+- Criação/otimização de CV, cartas de candidatura e portfólios.
+- Verificação de plágio e otimização de referências bibliográficas.
+
+### Ideias adicionais sugeridas
+- Coaching para métodos de pesquisa e desenho experimental.
+- Workshops rápidos sobre ferramentas de produtividade académica (LaTeX, gestores de referências).
+- Mentoria de carreira académica (bolsas, candidaturas a mestrado/doutoramento).
 
 ## Notas
 - Node.js foi removido; todo o backend e frontend são servidos em PHP para funcionar em ambientes de alojamento apenas-PHP.

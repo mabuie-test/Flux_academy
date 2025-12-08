@@ -269,3 +269,49 @@ if (document.getElementById('admin-orders')) {
   loadPayouts();
   loadAudits();
 }
+
+async function loadServices() {
+  const res = await fetch(`${apiBase}/admin/services`, { headers: { Authorization: `Bearer ${authToken}` } });
+  const data = await res.json();
+  const list = document.getElementById('admin-services');
+  if (!list) return;
+  if (!res.ok) {
+    list.innerHTML = `<p class="muted">${data.message || 'Erro ao carregar serviços'}</p>`;
+    return;
+  }
+  list.innerHTML = '';
+  data.services.forEach((svc) => {
+    const item = document.createElement('div');
+    item.className = 'card';
+    item.innerHTML = `
+      <h4>${svc.categoria}</h4>
+      <p class="muted">${svc.contact_name} · ${svc.contact_email} ${svc.contact_phone ? ' · ' + svc.contact_phone : ''}</p>
+      <p>${svc.detalhes || ''}</p>
+      <p>${svc.norma_preferida ? 'Norma: ' + svc.norma_preferida + ' · ' : ''}${svc.software_preferido ? 'Software: ' + svc.software_preferido : ''}</p>
+      ${svc.attachment ? `<p><a href="${svc.attachment}" target="_blank">Ver anexo</a></p>` : ''}
+      <div class="inline-group">
+        <select data-service="${svc.id}">
+          ${['NOVO','EM_ANALISE','RESPONDIDO','CONCLUIDO'].map((s) => `<option value="${s}" ${svc.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="ghost" data-btn="${svc.id}">Atualizar</button>
+      </div>
+    `;
+    item.querySelector('button').onclick = () => updateServiceStatus(svc.id, item.querySelector('select').value);
+    list.appendChild(item);
+  });
+}
+
+async function updateServiceStatus(id, status) {
+  const form = new FormData();
+  form.set('service_id', id);
+  form.set('status', status);
+  const res = await fetch(`${apiBase}/admin/services/update`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}` }, body: form });
+  const data = await res.json();
+  if (!res.ok) return toast(data.message || 'Erro ao atualizar serviço');
+  toast('Serviço atualizado');
+  loadServices();
+}
+
+if (document.getElementById('admin-services')) {
+  loadServices();
+}

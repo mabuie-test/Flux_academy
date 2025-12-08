@@ -141,6 +141,7 @@
     <button onclick="document.getElementById('order-card').scrollIntoView({behavior:'smooth'})">Encomendas</button>
     <button onclick="document.getElementById('tcc-card').scrollIntoView({behavior:'smooth'})">Acompanhamento TCC</button>
     <button onclick="document.getElementById('special-card').scrollIntoView({behavior:'smooth'})">Encomendas práticas</button>
+    <button onclick="document.getElementById('service-card').scrollIntoView({behavior:'smooth'})">Serviços especializados</button>
     <button onclick="document.getElementById('invoice-area').scrollIntoView({behavior:'smooth'})">Gestão de faturas</button>
     <button onclick="document.getElementById('deliveries-area').scrollIntoView({behavior:'smooth'})">Documentos recebidos</button>
     <button onclick="window.open('/documents.html','_blank')">Página dedicada</button>
@@ -185,6 +186,55 @@
         <label>Detalhes do trabalho</label><textarea name="details" rows="3" required></textarea>
         <label>Resultados esperados</label><input name="goals" />
         <button type="submit">Submeter pedido especial</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="container cards-grid" id="service-card">
+    <div class="card">
+      <h3>Serviços especializados</h3>
+      <p class="muted">Selecione o serviço e preencha o formulário para receber uma proposta dedicada.</p>
+      <div class="pill-list">
+        <button type="button" data-service-type="Revisão linguística e normalização">Revisão linguística / Normas</button>
+        <button type="button" data-service-type="Consultoria estatística SPSS/R">Consultoria estatística (SPSS/R)</button>
+        <button type="button" data-service-type="Apresentações e defesas">Apresentações e defesas</button>
+        <button type="button" data-service-type="Currículo e carta de candidatura">CV e carta de candidatura</button>
+        <button type="button" data-service-type="Verificação de plágio e referências">Verificação de plágio e referências</button>
+      </div>
+      <form id="service-form" class="stacked">
+        <label>Serviço</label>
+        <select id="service-type" name="categoria" required>
+          <option value="Revisão linguística e normalização">Revisão linguística e normalização (APA, ABNT, MLA, Chicago, Vancouver, IEEE)</option>
+          <option value="Consultoria estatística SPSS/R">Consultoria estatística (SPSS, R) e visualização de dados</option>
+          <option value="Apresentações e defesas">Preparação de apresentações/defesas (slides e roteiros)</option>
+          <option value="Currículo e carta de candidatura">Criação de CV, carta de candidatura e portfólios</option>
+          <option value="Verificação de plágio e referências">Verificação de plágio e otimização de referências</option>
+        </select>
+        <label>Norma preferida</label>
+        <select name="norma_preferida">
+          <option value="">Qualquer</option>
+          <option value="APA">APA</option>
+          <option value="ABNT">ABNT</option>
+          <option value="MLA">MLA</option>
+          <option value="Chicago">Chicago</option>
+          <option value="Vancouver">Vancouver</option>
+          <option value="IEEE">IEEE</option>
+        </select>
+        <label>Software / stack de preferência</label>
+        <select name="software_preferido">
+          <option value="">Indiferente</option>
+          <option value="SPSS">SPSS</option>
+          <option value="R">R</option>
+          <option value="Python">Python</option>
+          <option value="PowerPoint/Canva">PowerPoint/Canva</option>
+        </select>
+        <label>Nome</label><input name="contact_name" required />
+        <label>Email</label><input type="email" name="contact_email" required />
+        <label>Telefone</label><input name="contact_phone" />
+        <label>Detalhes do pedido</label><textarea name="detalhes" rows="3" required></textarea>
+        <label>Anexo opcional (materiais de apoio, CV base, dados)</label>
+        <input type="file" name="attachment" />
+        <button type="submit">Enviar pedido especializado</button>
       </form>
     </div>
   </section>
