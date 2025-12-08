@@ -12,6 +12,11 @@ const {
   listServiceRequests,
   updateServiceRequest,
   broadcastEmail,
+  listUsers,
+  updateUser,
+  listAffiliates,
+  createPayout,
+  processPayout,
 } = require('../controllers/adminController');
 const { getFeedback, replyFeedback } = require('../controllers/feedbackController');
 
@@ -52,5 +57,10 @@ router.post('/orders/:id/feedback/reply', auth, isAdmin, replyFeedback);
 router.get('/services', auth, isAdmin, listServiceRequests);
 router.post('/services/:id', auth, isAdmin, updateServiceRequest);
 router.post('/broadcast', auth, isAdmin, broadcastEmail);
+router.get('/users', auth, isAdmin, listUsers);
+router.patch('/users/:id', auth, isAdmin, updateUser);
+router.get('/affiliates', auth, isAdmin, listAffiliates);
+router.post('/affiliates/payouts', auth, isAdmin, createPayout);
+router.post('/affiliates/payouts/:id', auth, isAdmin, processPayout);
 
 module.exports = router;

@@ -2,6 +2,7 @@ const Feedback = require('../models/Feedback');
 const Order = require('../models/Order');
 const Invoice = require('../models/Invoice');
 const User = require('../models/User');
+const AffiliatePayout = require('../models/AffiliatePayout');
 const { sendMail } = require('../utils/mailer');
 const { logAudit } = require('../utils/audit');
 
@@ -104,12 +105,17 @@ exports.getAffiliateSummary = async (req, res) => {
     const user = await User.findById(req.user._id);
     const referredOrders = await Order.find({ referrer: req.user._id, referralPaid: true });
     const pendingOrders = await Order.find({ referrer: req.user._id, referralPaid: false });
+    const pendingPayoutsAgg = await AffiliatePayout.aggregate([
+      { $match: { user: user._id, status: 'PENDENTE' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
     res.json({
       referralCode: user.referralCode,
       affiliateBalance: user.affiliateBalance,
       affiliateTotalEarned: user.affiliateTotalEarned,
       paidOrders: referredOrders.length,
       pendingOrders: pendingOrders.length,
+      pendingPayouts: pendingPayoutsAgg[0]?.total || 0,
     });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao carregar afiliados', error: err.message });

@@ -51,6 +51,7 @@ exports.signin = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: 'Credenciais inválidas' });
+    if (!user.active) return res.status(403).json({ message: 'Conta desativada, contacte a equipa' });
     const match = await user.comparePassword(password);
     if (!match) return res.status(400).json({ message: 'Credenciais inválidas' });
     const token = createToken(user);

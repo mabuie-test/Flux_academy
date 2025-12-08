@@ -3,6 +3,7 @@ const PDFDocument = require('pdfkit');
 const Order = require('../models/Order');
 const Invoice = require('../models/Invoice');
 const User = require('../models/User');
+const AffiliatePayout = require('../models/AffiliatePayout');
 const { calculatePrice } = require('../utils/pricing');
 const { sendMail, invoiceEmailTemplate } = require('../utils/mailer');
 const { logAudit } = require('../utils/audit');
@@ -300,5 +301,45 @@ exports.downloadInvoicePdf = async (req, res) => {
     doc.end();
   } catch (err) {
     res.status(500).json({ message: 'Erro ao gerar PDF', error: err.message });
+  }
+};
+
+exports.requestAffiliatePayout = async (req, res) => {
+  try {
+    const amount = Number(req.body.amount || 0);
+    if (Number.isNaN(amount) || amount <= 0) return res.status(400).json({ message: 'Montante inválido' });
+    const user = await User.findById(req.user._id);
+    const pendingTotal = await AffiliatePayout.aggregate([
+      { $match: { user: user._id, status: 'PENDENTE' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const pending = pendingTotal[0]?.total || 0;
+    const available = user.affiliateBalance - pending;
+    if (amount > available) return res.status(400).json({ message: 'Saldo insuficiente para solicitar' });
+
+    const payout = await AffiliatePayout.create({ user: user._id, amount, note: req.body.note });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'PEDIDO_PAGAMENTO_AFILIADO',
+        entityType: 'AffiliatePayout',
+        entityId: payout._id.toString(),
+        metadata: { amount },
+      },
+      req
+    );
+    res.status(201).json({ payout });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao solicitar pagamento', error: err.message });
+  }
+};
+
+exports.listAffiliatePayouts = async (req, res) => {
+  try {
+    const payouts = await AffiliatePayout.find({ user: req.user._id }).sort({ createdAt: -1 });
+    res.json({ payouts });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao carregar pagamentos', error: err.message });
   }
 };

@@ -5,6 +5,9 @@ let dashboardData = null;
 let serviceRequests = [];
 let filters = { status: 'all', invoice: 'all', search: '' };
 let refreshTimer = null;
+let userData = null;
+let affiliateData = null;
+const charts = {};
 
 const modal = document.getElementById('confirm-overlay');
 const modalTitle = document.getElementById('confirm-title');
@@ -32,6 +35,43 @@ function showConfirm({ title, text }) {
     modalOk.addEventListener('click', okHandler);
     modalCancel.addEventListener('click', cancelHandler);
   });
+}
+
+function renderCharts() {
+  if (!dashboardData?.timeSeries) return;
+  const dates = Object.keys(dashboardData.timeSeries).sort();
+  const emitidas = dates.map((d) => dashboardData.timeSeries[d].emitidas);
+  const pagas = dates.map((d) => dashboardData.timeSeries[d].pagas);
+  const valores = dates.map((d) => dashboardData.timeSeries[d].valor);
+
+  const ctxFaturas = document.getElementById('chart-faturas');
+  if (ctxFaturas) {
+    charts.faturas?.destroy?.();
+    charts.faturas = new Chart(ctxFaturas, {
+      type: 'bar',
+      data: {
+        labels: dates,
+        datasets: [
+          { label: 'Faturas emitidas', data: emitidas, backgroundColor: '#4f8af5' },
+          { label: 'Faturas pagas', data: pagas, backgroundColor: '#23c683' },
+        ],
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } },
+    });
+  }
+
+  const ctxReceita = document.getElementById('chart-receita');
+  if (ctxReceita) {
+    charts.receita?.destroy?.();
+    charts.receita = new Chart(ctxReceita, {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [{ label: 'Receita confirmada', data: valores, borderColor: '#1f6feb', backgroundColor: 'rgba(31,111,235,0.2)' }],
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } },
+    });
+  }
 }
 
 function toast(message) {
@@ -82,12 +122,16 @@ function toggleAdminView(authenticated) {
   if (authenticated) {
     loadAdminOrders();
     loadServices();
+    loadUsers();
+    loadAffiliates();
     if (!refreshTimer) {
       refreshTimer = setInterval(() => {
         if (document.hidden) return;
         loadAdminOrders(true);
         if (selectedOrder) openOrder(selectedOrder.order._id, true);
         loadServices(true);
+        loadUsers(true);
+        loadAffiliates(true);
       }, 8000);
     }
   } else if (refreshTimer) {
@@ -107,6 +151,7 @@ async function loadAdminOrders(silent = false) {
   renderStats();
   renderOrders();
   renderAudit();
+  renderCharts();
 }
 
 async function loadServices(silent = false) {
@@ -118,6 +163,28 @@ async function loadServices(silent = false) {
   }
   serviceRequests = data.requests || [];
   renderServices();
+}
+
+async function loadUsers(silent = false) {
+  const res = await fetch(`${apiBase}/admin/users`, { headers: { Authorization: `Bearer ${token}` } });
+  const data = await res.json();
+  if (!res.ok) {
+    if (!silent) toast(data.message || 'Erro ao carregar utilizadores');
+    return;
+  }
+  userData = data;
+  renderUsers();
+}
+
+async function loadAffiliates(silent = false) {
+  const res = await fetch(`${apiBase}/admin/affiliates`, { headers: { Authorization: `Bearer ${token}` } });
+  const data = await res.json();
+  if (!res.ok) {
+    if (!silent) toast(data.message || 'Erro ao carregar afiliados');
+    return;
+  }
+  affiliateData = data;
+  renderAffiliates();
 }
 
 async function openOrder(id, silent = false) {
@@ -294,6 +361,7 @@ function renderStats() {
   const executing = dashboardData.orders.filter((o) => o.status === 'EM_EXECUCAO').length;
   const finished = dashboardData.orders.filter((o) => o.status === 'CONCLUIDA').length;
   const affiliate = dashboardData.affiliateTotals || {};
+  const payoutTotals = dashboardData.payoutTotals || {};
   holder.innerHTML = `
     <div class="pill">Total: ${total}</div>
     <div class="pill">Em validação: ${awaiting}</div>
@@ -302,6 +370,7 @@ function renderStats() {
     <div class="pill">Faturas pagas: ${dashboardData.invoiceStatusCounts?.PAGA || 0}</div>
     <div class="pill">Receita confirmada: ${dashboardData.revenue?.total || 0}</div>
     <div class="pill">Comissões afiliados: ${affiliate.paid?.toFixed?.(2) || 0}</div>
+    <div class="pill">Pagamentos afiliados emitidos: ${payoutTotals.paid?.toFixed?.(2) || 0}</div>
   `;
 
   const mini = document.getElementById('admin-mini-stats');
@@ -313,6 +382,54 @@ function renderStats() {
       <p><strong>Total auditorias:</strong> ${dashboardData.auditSummary?.totalAudits || 0}</p>
     `;
   }
+}
+
+function renderUsers() {
+  if (!userData) return;
+  const summary = document.getElementById('user-summary');
+  summary.innerHTML = `
+    <div class="pill">Clientes: ${userData.summary?.client || 0}</div>
+    <div class="pill">Admins: ${userData.summary?.admin || 0}</div>
+    <div class="pill">Inativos: ${userData.summary?.inativos || 0}</div>
+  `;
+  const table = document.getElementById('user-table');
+  table.innerHTML = '';
+  userData.users.forEach((u) => {
+    const row = document.createElement('div');
+    row.innerHTML = `
+      <p><strong>${u.name}</strong> (${u.email})</p>
+      <p>Role: <span class="badge">${u.role}</span> · Estado: ${u.active ? 'Ativo' : 'Inativo'}</p>
+      <div class="row-actions">
+        <button data-action="role" data-id="${u._id}" data-role="${u.role === 'admin' ? 'client' : 'admin'}">Tornar ${
+      u.role === 'admin' ? 'cliente' : 'admin'
+    }</button>
+        <button data-action="toggle" data-id="${u._id}">${u.active ? 'Desativar' : 'Reativar'}</button>
+      </div>
+    `;
+    table.appendChild(row);
+  });
+
+  table.querySelectorAll('button').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      const payload = {};
+      if (action === 'role') payload.role = btn.dataset.role;
+      if (action === 'toggle') payload.active = btn.textContent.includes('Reativar');
+      const res = await fetch(`${apiBase}/admin/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast('Utilizador atualizado');
+        loadUsers(true);
+      } else {
+        toast(data.message || 'Erro ao atualizar utilizador');
+      }
+    });
+  });
 }
 
 function renderServices() {
@@ -337,6 +454,91 @@ function renderServices() {
     div.querySelector('button').addEventListener('click', () => updateService(div, r._id));
     zone.appendChild(div);
   });
+}
+
+function renderAffiliates() {
+  if (!affiliateData || !dashboardData) return;
+  const cards = document.getElementById('affiliate-totals');
+  const totals = dashboardData.affiliateTotals || {};
+  const payoutTotals = dashboardData.payoutTotals || {};
+  cards.innerHTML = `
+    <div class="pill">Comissões acumuladas: ${totals.total?.toFixed?.(2) || 0}</div>
+    <div class="pill">Pagas: ${totals.paid?.toFixed?.(2) || 0}</div>
+    <div class="pill">Pagamentos emitidos: ${payoutTotals.paid?.toFixed?.(2) || 0}</div>
+  `;
+
+  const list = document.getElementById('affiliate-list');
+  list.innerHTML = '';
+  affiliateData.affiliates.forEach((a) => {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <p><strong>${a.name}</strong> (${a.email})</p>
+      <p>Código: <code>${a.referralCode}</code> · Saldo: ${a.affiliateBalance?.toFixed?.(2) || 0} · Ganhos: ${
+      a.affiliateTotalEarned?.toFixed?.(2) || 0
+    }</p>
+      <p>Estado: ${a.active ? 'Ativo' : 'Inativo'} | Perfil ${a.role}</p>
+    `;
+    list.appendChild(div);
+  });
+
+  const payoutList = document.getElementById('payout-list');
+  payoutList.innerHTML = '<p class="muted">Pagamentos registados</p>';
+  affiliateData.payouts.forEach((p) => {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <p><strong>${p.user?.name || p.user?.email || 'Afiliado'}</strong> — ${p.amount} MZN (${p.status})</p>
+      <p>${new Date(p.createdAt).toLocaleString()} ${p.note ? `| ${p.note}` : ''}</p>
+      ${p.status === 'PENDENTE'
+        ? `<div class="row-actions">
+            <button data-action="approve" data-id="${p._id}">Marcar como pago</button>
+            <button data-action="reject" data-id="${p._id}" class="ghost">Rejeitar</button>
+          </div>`
+        : ''}
+    `;
+    payoutList.appendChild(div);
+  });
+
+  payoutList.querySelectorAll('button').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const status = btn.dataset.action === 'approve' ? 'PAGO' : 'RECUSADO';
+      const id = btn.dataset.id;
+      const res = await fetch(`${apiBase}/admin/affiliates/payouts/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast('Pagamento atualizado');
+        loadAffiliates(true);
+        loadAdminOrders(true);
+      } else {
+        toast(data.message || 'Erro ao atualizar pagamento');
+      }
+    });
+  });
+
+  const payoutForm = document.getElementById('payout-form');
+  if (payoutForm && !payoutForm.dataset.bound) {
+    payoutForm.dataset.bound = 'true';
+    payoutForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(payoutForm).entries());
+      const res = await fetch(`${apiBase}/admin/affiliates/payouts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast('Pagamento registado');
+        payoutForm.reset();
+        loadAffiliates(true);
+      } else {
+        toast(data.message || 'Erro ao registar pagamento');
+      }
+    });
+  }
 }
 
 async function updateService(container, id) {

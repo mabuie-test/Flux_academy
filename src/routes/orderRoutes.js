@@ -10,6 +10,8 @@ const {
   downloadFinal,
   quotePrice,
   downloadInvoicePdf,
+  requestAffiliatePayout,
+  listAffiliatePayouts,
 } = require('../controllers/orderController');
 const {
   submitFeedback,
@@ -69,6 +71,8 @@ const orderUpload = multer({
 router.post('/', auth, orderUpload.array('materials', 5), createOrder);
 router.get('/', auth, getOrders);
 router.get('/affiliate/summary', auth, getAffiliateSummary);
+router.get('/affiliate/payouts', auth, listAffiliatePayouts);
+router.post('/affiliate/payouts', auth, requestAffiliatePayout);
 router.post('/quote', auth, quotePrice);
 router.get('/:id/feedback', auth, getFeedback);
 router.post('/:id/feedback', auth, submitFeedback);

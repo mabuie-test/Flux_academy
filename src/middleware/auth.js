@@ -11,6 +11,7 @@ async function auth(req, res, next) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
     if (!user) return res.status(401).json({ message: 'Utilizador não encontrado' });
+    if (!user.active) return res.status(403).json({ message: 'Conta desativada, contacte o suporte' });
     req.user = user;
     next();
   } catch (err) {

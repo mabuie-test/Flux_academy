@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['client', 'admin'], default: 'client' },
+    active: { type: Boolean, default: true },
     referralCode: { type: String, unique: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     affiliateBalance: { type: Number, default: 0 },

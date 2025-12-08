@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Painel Admin - Flux Academy</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <header>
@@ -39,6 +40,9 @@
         <li><a href="#auditoria">Auditoria</a></li>
         <li><a href="#services">Pedidos especiais</a></li>
         <li><a href="#broadcast">Envios em massa</a></li>
+        <li><a href="#users">Utilizadores</a></li>
+        <li><a href="#affiliates">Afiliados</a></li>
+        <li><a href="#charts">Estatísticas</a></li>
       </ul>
       <div class="divider"></div>
       <div class="mini-stats" id="admin-mini-stats"></div>
@@ -97,6 +101,30 @@
         <label>Mensagem</label><textarea name="message" rows="3" required></textarea>
         <button type="submit">Enviar emails</button>
       </form>
+    </div>
+    <div class="card" id="users" style="width:760px;">
+      <h3>Gestão de utilizadores</h3>
+      <div id="user-summary" class="hero-grid"></div>
+      <div id="user-table" class="list"></div>
+    </div>
+    <div class="card" id="affiliates" style="width:760px;">
+      <h3>Programa de afiliados</h3>
+      <div id="affiliate-totals" class="hero-grid"></div>
+      <form id="payout-form" class="mini-form inline">
+        <input type="text" name="userId" placeholder="ID do afiliado" required />
+        <input type="number" name="amount" min="1" step="0.01" placeholder="Montante" required />
+        <input type="text" name="note" placeholder="Nota / referência" />
+        <button type="submit">Registar pagamento</button>
+      </form>
+      <div id="affiliate-list" class="list"></div>
+      <div id="payout-list" class="list"></div>
+    </div>
+    <div class="card" id="charts" style="width:760px;">
+      <h3>Estatísticas</h3>
+      <div class="chart-grid">
+        <canvas id="chart-faturas" height="140"></canvas>
+        <canvas id="chart-receita" height="140"></canvas>
+      </div>
     </div>
   </section>
 

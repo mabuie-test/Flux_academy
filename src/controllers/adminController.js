@@ -3,6 +3,7 @@ const Invoice = require('../models/Invoice');
 const User = require('../models/User');
 const Audit = require('../models/Audit');
 const ServiceRequest = require('../models/ServiceRequest');
+const AffiliatePayout = require('../models/AffiliatePayout');
 const {
   sendMail,
   invoiceEmailTemplate,
@@ -55,6 +56,10 @@ exports.listOrders = async (req, res) => {
     const orders = await Order.find().populate('user');
     const invoices = await Invoice.find();
     const audits = await Audit.find().sort({ createdAt: -1 }).limit(40);
+    const payouts = await AffiliatePayout.find().sort({ createdAt: -1 }).limit(30);
+    const payoutTotalsAgg = await AffiliatePayout.aggregate([
+      { $group: { _id: '$status', total: { $sum: '$amount' } } },
+    ]);
 
     const statusCounts = orders.reduce((acc, o) => {
       acc[o.status] = (acc[o.status] || 0) + 1;
@@ -81,6 +86,27 @@ exports.listOrders = async (req, res) => {
       },
       { total: 0, paid: 0 }
     );
+    const payoutTotals = payoutTotalsAgg.reduce(
+      (acc, row) => {
+        acc.total += row.total || 0;
+        if (row._id === 'PAGO') acc.paid += row.total || 0;
+        return acc;
+      },
+      { total: 0, paid: 0 }
+    );
+    const timeSeries = invoices.reduce(
+      (acc, inv) => {
+        const key = new Date(inv.createdAt).toISOString().slice(0, 10);
+        acc[key] = acc[key] || { emitidas: 0, pagas: 0, valor: 0 };
+        acc[key].emitidas += 1;
+        if (inv.status === 'PAGA') {
+          acc[key].pagas += 1;
+          acc[key].valor += inv.amount || 0;
+        }
+        return acc;
+      },
+      {}
+    );
     const auditSummary = {
       lastLogins: audits.filter((a) => ['SIGNIN', 'SIGNUP', 'SIGNUP_ADMIN'].includes(a.action)).length,
       paymentValidations: audits.filter((a) => a.action === 'VALIDAR_PAGAMENTO').length,
@@ -90,7 +116,19 @@ exports.listOrders = async (req, res) => {
       totalAudits: await Audit.countDocuments(),
     };
 
-    res.json({ orders, invoices, audits, statusCounts, invoiceStatusCounts, revenue, auditSummary, affiliateTotals });
+    res.json({
+      orders,
+      invoices,
+      audits,
+      statusCounts,
+      invoiceStatusCounts,
+      revenue,
+      auditSummary,
+      affiliateTotals,
+      payoutTotals,
+      timeSeries,
+      payouts,
+    });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao listar encomendas', error: err.message });
   }
@@ -219,6 +257,135 @@ exports.uploadFinalWork = async (req, res) => {
     res.json({ message: 'Trabalho final carregado', order });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao subir trabalho final', error: err.message });
+  }
+};
+
+exports.listUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    const summary = users.reduce(
+      (acc, u) => {
+        acc[u.role] = (acc[u.role] || 0) + 1;
+        if (!u.active) acc.inativos += 1;
+        return acc;
+      },
+      { inativos: 0 }
+    );
+    res.json({ users, summary });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao listar utilizadores', error: err.message });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'Utilizador não encontrado' });
+    if (req.body.role) user.role = req.body.role;
+    if (req.body.active !== undefined) user.active = req.body.active;
+    await user.save();
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'ATUALIZAR_UTILIZADOR',
+        entityType: 'User',
+        entityId: user._id.toString(),
+        metadata: { role: user.role, active: user.active },
+      },
+      req
+    );
+    res.json({ message: 'Utilizador atualizado', user });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao atualizar utilizador', error: err.message });
+  }
+};
+
+exports.listAffiliates = async (req, res) => {
+  try {
+    const affiliates = await User.find({ referralCode: { $exists: true } }).select(
+      'name email affiliateBalance affiliateTotalEarned referralCode active role'
+    );
+    const payouts = await AffiliatePayout.find().sort({ createdAt: -1 }).limit(40).populate('user');
+    res.json({ affiliates, payouts });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao carregar afiliados', error: err.message });
+  }
+};
+
+exports.createPayout = async (req, res) => {
+  try {
+    const { userId, amount, note } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'Afiliado não encontrado' });
+    const pendingTotal = await AffiliatePayout.aggregate([
+      { $match: { user: user._id, status: 'PENDENTE' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const pending = pendingTotal[0]?.total || 0;
+    const available = user.affiliateBalance - pending;
+    if (amount > available) return res.status(400).json({ message: 'Saldo insuficiente para pagar este montante' });
+
+    const payout = await AffiliatePayout.create({ user: user._id, amount, note });
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'CRIAR_PAGAMENTO_AFILIADO',
+        entityType: 'AffiliatePayout',
+        entityId: payout._id.toString(),
+        metadata: { amount, note },
+      },
+      req
+    );
+    res.status(201).json({ payout });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao registar pagamento de afiliado', error: err.message });
+  }
+};
+
+exports.processPayout = async (req, res) => {
+  try {
+    const payout = await AffiliatePayout.findById(req.params.id);
+    if (!payout) return res.status(404).json({ message: 'Registo não encontrado' });
+    const user = await User.findById(payout.user);
+    if (!user) return res.status(404).json({ message: 'Utilizador afiliado não encontrado' });
+
+    const status = req.body.status;
+    if (!['PAGO', 'RECUSADO'].includes(status)) {
+      return res.status(400).json({ message: 'Estado inválido' });
+    }
+
+    if (status === 'PAGO' && user.affiliateBalance < payout.amount) {
+      return res.status(400).json({ message: 'Saldo insuficiente; ajuste o valor ou valide novamente' });
+    }
+
+    payout.status = status;
+    payout.note = req.body.note || payout.note;
+    payout.admin = req.user._id;
+    payout.processedAt = new Date();
+    await payout.save();
+
+    if (status === 'PAGO') {
+      user.affiliateBalance -= payout.amount;
+      await user.save();
+    }
+
+    await logAudit(
+      {
+        user: req.user._id,
+        role: req.user.role,
+        action: 'PROCESSAR_PAGAMENTO_AFILIADO',
+        entityType: 'AffiliatePayout',
+        entityId: payout._id.toString(),
+        metadata: { status, amount: payout.amount },
+      },
+      req
+    );
+
+    res.json({ payout, user });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao processar pagamento', error: err.message });
   }
 };
 

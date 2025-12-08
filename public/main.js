@@ -261,14 +261,23 @@ async function loadOrders(silent = false) {
 async function loadAffiliatePanel() {
   const panel = document.getElementById('affiliate-panel');
   if (!panel) return;
-  const res = await fetch(`${apiBase}/orders/affiliate/summary`, {
-    headers: { Authorization: `Bearer ${authToken}` },
-  });
-  const data = await res.json();
-  if (!res.ok) {
+  const [summaryRes, payoutsRes] = await Promise.all([
+    fetch(`${apiBase}/orders/affiliate/summary`, { headers: { Authorization: `Bearer ${authToken}` } }),
+    fetch(`${apiBase}/orders/affiliate/payouts`, { headers: { Authorization: `Bearer ${authToken}` } }),
+  ]);
+  const data = await summaryRes.json();
+  const payoutsData = await payoutsRes.json();
+  if (!summaryRes.ok) {
     panel.innerHTML = '<p class="muted">Não foi possível carregar o programa de afiliados.</p>';
     return;
   }
+  const payoutList = payoutsData.payouts
+    ?.map(
+      (p) => `<li>${new Date(p.createdAt).toLocaleDateString()} · ${p.amount} MZN · ${p.status}${
+        p.note ? ` (${p.note})` : ''
+      }</li>`
+    )
+    .join('') || '<li class="muted">Sem pedidos ainda.</li>';
   panel.innerHTML = `
     <div class="affiliate-card">
       <div>
@@ -276,7 +285,7 @@ async function loadAffiliatePanel() {
         <p class="code">${data.referralCode}</p>
       </div>
       <div>
-        <p class="muted">Ganhos pendentes</p>
+        <p class="muted">Saldo disponível</p>
         <p class="highlight">${data.affiliateBalance?.toFixed(2) || '0.00'} MZN</p>
       </div>
       <div>
@@ -285,8 +294,35 @@ async function loadAffiliatePanel() {
       </div>
     </div>
     <p class="muted small">Pedidos pagos: ${data.paidOrders} · Em validação: ${data.pendingOrders}</p>
+    <p class="muted small">Pagamentos a receber: ${data.pendingPayouts?.toFixed?.(2) || 0} MZN</p>
     <p class="muted">Partilhe: <code>?ref=${data.referralCode}</code> ou insira o código no formulário do pedido.</p>
+    <form id="affiliate-payout-form" class="mini-form">
+      <label>Levantar comissão (MZN)</label>
+      <input type="number" name="amount" min="1" step="0.01" required />
+      <input type="text" name="note" placeholder="IBAN/telefone para pagamento" />
+      <button type="submit">Pedir pagamento</button>
+    </form>
+    <div class="payout-history">
+      <p class="muted">Pedidos de pagamento</p>
+      <ul>${payoutList}</ul>
+    </div>
   `;
+
+  const form = document.getElementById('affiliate-payout-form');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
+    const res = await fetch(`${apiBase}/orders/affiliate/payouts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify(payload),
+    });
+    const out = await res.json();
+    if (!res.ok) return toast(out.message || 'Não foi possível criar o pedido');
+    toast('Pedido registado');
+    loadAffiliatePanel();
+  });
 }
 
 async function viewOrder(id) {

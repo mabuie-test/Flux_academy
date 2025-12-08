@@ -497,3 +497,21 @@ body.auth-page {
 .feedback-board h4 {
   margin-bottom: 4px;
 }
+
+/* Admin refinements */
+.mini-form {
+  display: grid;
+  gap: 10px;
+}
+.mini-form.inline {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  align-items: end;
+}
+.payout-history ul {
+  padding-left: 16px;
+}
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
