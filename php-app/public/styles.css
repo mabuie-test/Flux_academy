@@ -317,6 +317,25 @@ body.auth-page {
   gap: 16px;
 }
 
+.grid-two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+canvas {
+  background: #0f172a0a;
+  padding: 8px;
+  border-radius: 12px;
+}
+
 .document-page header {
   background: #0c1e42;
 }

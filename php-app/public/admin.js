@@ -1,5 +1,6 @@
 const apiBase = '/api';
 let authToken = localStorage.getItem('token') || '';
+let statusChart;
 
 function requireAdmin() {
   if (!authToken) {
@@ -81,6 +82,7 @@ async function approveInvoice(invoiceId, number, email) {
   if (!res.ok) return toast(data.message || 'Erro ao validar pagamento');
   toast('Pagamento marcado como pago.');
   loadOrders();
+  loadMetrics();
 }
 
 async function rejectInvoice(invoiceId, orderId) {
@@ -97,6 +99,7 @@ async function rejectInvoice(invoiceId, orderId) {
   if (!res.ok) return toast(data.message || 'Erro ao rejeitar');
   toast('Pagamento devolvido ao estado pendente.');
   loadOrders();
+  loadMetrics();
 }
 
 async function uploadFinal(orderId, input) {
@@ -165,6 +168,19 @@ async function loadMetrics() {
   }
   const m = data.metrics;
   zone.innerHTML = `Pedidos: ${m.orders} · Faturas: ${m.invoices} · Pago: ${m.paid} · Pendente: ${m.pending}`;
+  const chartData = (data.status || []).map((s) => ({ label: s.estado, value: s.total }));
+  if (window.Chart && document.getElementById('status-chart')) {
+    const ctx = document.getElementById('status-chart').getContext('2d');
+    if (statusChart) statusChart.destroy();
+    statusChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: chartData.map((d) => d.label),
+        datasets: [{ data: chartData.map((d) => d.value), backgroundColor: ['#1d4ed8', '#0ea5e9', '#22c55e', '#f59e0b', '#ef4444'] }],
+      },
+      options: { plugins: { legend: { position: 'bottom' } } },
+    });
+  }
 }
 
 async function loadCommissions() {
@@ -185,9 +201,71 @@ async function loadCommissions() {
   });
 }
 
+async function loadPayouts() {
+  const res = await fetch(`${apiBase}/admin/payouts`, { headers: { Authorization: `Bearer ${authToken}` } });
+  const data = await res.json();
+  const list = document.getElementById('admin-payouts');
+  if (!list) return;
+  if (!res.ok) {
+    list.innerHTML = `<p class="muted">${data.message || 'Erro'}</p>`;
+    return;
+  }
+  list.innerHTML = '';
+  data.payouts.forEach((p) => {
+    const item = document.createElement('div');
+    item.className = 'list-item';
+    item.innerHTML = `
+      <div>
+        <strong>Pedido #${p.id}</strong>
+        <p class="muted">${p.name || p.email} · ${p.valor} MZN · ${p.metodo}</p>
+      </div>
+      <div class="stacked-actions">
+        <button class="ghost" data-id="${p.id}" data-status="APROVADO">Aprovar</button>
+        <button class="ghost" data-id="${p.id}" data-status="REJEITADO">Rejeitar</button>
+      </div>`;
+    item.querySelectorAll('button').forEach((btn) => {
+      btn.onclick = () => updatePayout(btn.dataset.id, btn.dataset.status);
+    });
+    list.appendChild(item);
+  });
+}
+
+async function updatePayout(payoutId, status) {
+  const form = new FormData();
+  form.set('payout_id', payoutId);
+  form.set('status', status);
+  form.set('notes', `Atualizado via painel para ${status}`);
+  const res = await fetch(`${apiBase}/admin/payouts/update`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}` }, body: form });
+  const data = await res.json();
+  if (!res.ok) return toast(data.message || 'Erro ao atualizar pagamento');
+  toast('Estado do levantamento atualizado');
+  loadPayouts();
+  loadCommissions();
+}
+
+async function loadAudits() {
+  const res = await fetch(`${apiBase}/admin/audits`, { headers: { Authorization: `Bearer ${authToken}` } });
+  const data = await res.json();
+  const list = document.getElementById('admin-audits');
+  if (!list) return;
+  if (!res.ok) {
+    list.innerHTML = `<p class="muted">${data.message || 'Erro'}</p>`;
+    return;
+  }
+  list.innerHTML = '';
+  (data.audits || []).forEach((a) => {
+    const item = document.createElement('div');
+    item.className = 'list-item';
+    item.innerHTML = `<div><strong>${a.action}</strong><p class="muted">${a.email || 'anónimo'} · ${a.meta}</p></div><span class="badge">${a.created_at || ''}</span>`;
+    list.appendChild(item);
+  });
+}
+
 if (document.getElementById('admin-orders')) {
   loadOrders();
   loadUsers();
   loadMetrics();
   loadCommissions();
+  loadPayouts();
+  loadAudits();
 }

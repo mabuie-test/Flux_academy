@@ -9,6 +9,8 @@ use App\Helpers\Mailer;
 use App\Models\Order;
 use App\Models\Invoice;
 use App\Models\Feedback;
+use App\Models\AffiliateCommission;
+use App\Models\AffiliatePayout;
 use App\Config\Config;
 
 class OrderController
@@ -59,6 +61,7 @@ class OrderController
             'descricao' => $data['descricao'] ?? '',
             'estado' => 'PENDENTE_PAGAMENTO',
             'prazo_entrega' => $data['prazo_entrega'] ?? null,
+            'referred_by_code' => $data['referral_code'] ?? ($user['referred_by'] ?? null),
             'materiais_info' => $data['materiais_info'] ?? null,
             'materiais_percentual' => $data['materiais_percentual'] ?? null,
             'materiais_uploads' => $materialsFiles ? json_encode($materialsFiles) : null,
@@ -154,6 +157,46 @@ class OrderController
         ]);
         AuditHelper::log($user['id'], 'feedback:create', ['order_id' => $data['order_id']]);
         Response::json(['message' => 'Feedback registado']);
+    }
+
+    public static function affiliateSummary(): void
+    {
+        $user = Auth::requireUser();
+        $code = $user['referral_code'] ?? null;
+        if (!$code) {
+            Response::json(['commissions' => [], 'totals' => ['pending' => 0, 'approved' => 0, 'paid' => 0], 'payouts' => []]);
+            return;
+        }
+        $commissions = AffiliateCommission::listForCode($code);
+        $totals = AffiliateCommission::totalsForCode($code);
+        $payouts = AffiliatePayout::listForUser($user['id']);
+        Response::json(['commissions' => $commissions, 'totals' => $totals, 'payouts' => $payouts, 'code' => $code]);
+    }
+
+    public static function requestPayout(): void
+    {
+        $user = Auth::requireUser();
+        $code = $user['referral_code'] ?? null;
+        if (!$code) {
+            Response::json(['message' => 'Não existe código de afiliado'], 400);
+            return;
+        }
+        $body = json_decode(file_get_contents('php://input'), true) ?? [];
+        $metodo = $body['metodo'] ?? 'mpesa';
+        $notes = $body['notes'] ?? null;
+        $available = AffiliateCommission::totalAvailableForCode($code);
+        if ($available <= 0) {
+            Response::json(['message' => 'Sem saldo disponível para levantamento'], 400);
+            return;
+        }
+        $payoutId = AffiliatePayout::create($user['id'], $available, 'SOLICITADO', $metodo, $notes);
+        AuditHelper::log($user['id'], 'affiliate:payout', ['payout_id' => $payoutId, 'valor' => $available]);
+        Mailer::send($user['email'], 'Pedido de levantamento recebido', 'Solicitação #' . $payoutId . ' no valor de ' . $available . ' MZN.');
+        $adminEmail = Config::get('ADMIN_NOTIFY_EMAIL');
+        if ($adminEmail) {
+            Mailer::send($adminEmail, 'Novo levantamento de afiliado', 'O afiliado ' . $user['email'] . ' solicitou ' . $available . ' MZN.');
+        }
+        Response::json(['message' => 'Pedido registado', 'payout_id' => $payoutId]);
     }
 
     public static function show(int $orderId): void

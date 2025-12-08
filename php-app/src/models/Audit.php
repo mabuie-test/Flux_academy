@@ -14,4 +14,12 @@ class Audit
             ':meta' => json_encode($meta)
         ]);
     }
+
+    public static function listRecent(int $limit = 25): array
+    {
+        $stmt = Database::pdo()->prepare('SELECT a.*, u.email FROM audits a LEFT JOIN users u ON u.id = a.user_id ORDER BY a.id DESC LIMIT :lim');
+        $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }

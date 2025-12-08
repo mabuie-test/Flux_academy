@@ -24,6 +24,7 @@ CREATE TABLE orders (
   estado VARCHAR(50),
   prazo_entrega DATETIME,
   invoice_id INT,
+  referred_by_code VARCHAR(20),
   materiais_info TEXT,
   materiais_percentual VARCHAR(20),
   materiais_uploads JSON,
@@ -61,7 +62,11 @@ CREATE TABLE affiliate_payouts (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   valor DECIMAL(10,2) NOT NULL,
+  metodo VARCHAR(50) DEFAULT 'mpesa',
   status VARCHAR(50) DEFAULT 'PENDENTE',
+  notes TEXT,
+  processed_by INT NULL,
+  processed_at DATETIME NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -73,6 +78,7 @@ CREATE TABLE affiliate_commissions (
   beneficiary_email VARCHAR(150) NOT NULL,
   amount DECIMAL(10,2) NOT NULL,
   status VARCHAR(50) DEFAULT 'PENDENTE',
+  payout_id INT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (order_id) REFERENCES orders(id)
 );

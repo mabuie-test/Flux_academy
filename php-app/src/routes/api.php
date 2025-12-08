@@ -30,6 +30,14 @@ if ($uri === '/api/orders' && $method === 'GET') {
     OrderController::index();
     return;
 }
+if ($uri === '/api/affiliates/summary' && $method === 'GET') {
+    OrderController::affiliateSummary();
+    return;
+}
+if ($uri === '/api/affiliates/request-payout' && $method === 'POST') {
+    OrderController::requestPayout();
+    return;
+}
 if ($uri === '/api/orders/proof' && $method === 'POST') {
     OrderController::uploadProof();
     return;
@@ -78,8 +86,20 @@ if ($uri === '/api/admin/commissions' && $method === 'GET') {
     AdminController::commissions();
     return;
 }
+if ($uri === '/api/admin/payouts' && $method === 'GET') {
+    AdminController::payouts();
+    return;
+}
+if ($uri === '/api/admin/payouts/update' && $method === 'POST') {
+    AdminController::updatePayout();
+    return;
+}
 if ($uri === '/api/admin/metrics' && $method === 'GET') {
     AdminController::metrics();
+    return;
+}
+if ($uri === '/api/admin/audits' && $method === 'GET') {
+    AdminController::audits();
     return;
 }
 

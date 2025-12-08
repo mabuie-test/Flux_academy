@@ -53,6 +53,9 @@ if (orderForm) {
     payload.set('urgencia', raw.get('urgency'));
     payload.set('descricao', raw.get('description'));
     payload.set('prazo_entrega', raw.get('deliveryDeadline'));
+    if (raw.get('referralCode')) {
+      payload.set('referral_code', raw.get('referralCode'));
+    }
     if (raw.get('hasMaterials') === 'sim') {
       payload.set('materiais_info', 'Materiais fornecidos pelo cliente');
       if (raw.get('materialsUsagePercent')) {
@@ -142,4 +145,55 @@ async function loadOrders() {
 
 if (document.getElementById('orders-list')) {
   loadOrders();
+}
+
+async function loadAffiliate() {
+  if (!requireAuth()) return;
+  try {
+    const res = await fetch(`${apiBase}/affiliates/summary`, { headers: { Authorization: `Bearer ${authToken}` } });
+    const data = await res.json();
+    const box = document.getElementById('affiliate-panel');
+    if (!box) return;
+    if (!res.ok) throw new Error(data.message || 'Erro no programa de afiliados');
+    const commissions = data.commissions || [];
+    const payouts = data.payouts || [];
+    box.innerHTML = `
+      <div class="pill">O seu código: <strong>${data.code || '—'}</strong></div>
+      <div class="grid metrics">
+        <div><p class="muted">Aguardando validação</p><h4>${data.totals.pending} MZN</h4></div>
+        <div><p class="muted">Liberado</p><h4>${data.totals.approved} MZN</h4></div>
+        <div><p class="muted">Pago</p><h4>${data.totals.paid} MZN</h4></div>
+      </div>
+      <button class="primary" id="request-payout">Pedir levantamento</button>
+      <h4>Comissões recentes</h4>
+      <div class="list">${commissions.map((c) => `<div class="list-item"><div>#${c.order_id} · ${c.amount} MZN</div><span class="badge">${c.status}</span></div>`).join('') || '<p class="muted">Sem comissões ainda</p>'}</div>
+      <h4>Levantamentos</h4>
+      <div class="list">${payouts.map((p) => `<div class="list-item"><div>Pedido #${p.id} · ${p.valor} MZN</div><span class="badge">${p.status}</span></div>`).join('') || '<p class="muted">Nenhum pedido</p>'}</div>
+    `;
+    const payoutBtn = document.getElementById('request-payout');
+    if (payoutBtn) payoutBtn.onclick = () => requestPayout();
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
+async function requestPayout() {
+  if (!requireAuth()) return;
+  try {
+    const res = await fetch(`${apiBase}/affiliates/request-payout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ notes: 'Levantamento solicitado via painel' }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Não foi possível registar o pedido');
+    showToast('Pedido de levantamento enviado.');
+    loadAffiliate();
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
+if (document.getElementById('affiliate-panel')) {
+  loadAffiliate();
 }

@@ -10,6 +10,8 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\Feedback;
 use App\Models\AffiliateCommission;
+use App\Models\AffiliatePayout;
+use App\Models\Audit;
 use App\Config\Config;
 use App\Config\Database;
 
@@ -38,14 +40,15 @@ class AdminController
         $order = Order::findWithUser((int) $invoice['order_id']);
         if ($order) {
             Order::updateEstado((int) $order['id'], 'EM_EXECUCAO');
-            if (!empty($order['referred_by'])) {
+            $refCode = $order['referred_by_code'] ?? $order['referred_by'] ?? $order['referral_code'] ?? null;
+            if ($refCode) {
                 $commission = round((float) $invoice['valor_total'] * 0.18, 2);
                 AffiliateCommission::create([
                     'order_id' => (int) $order['id'],
-                    'referrer_code' => $order['referred_by'],
+                    'referrer_code' => $refCode,
                     'beneficiary_email' => $order['user_email'],
                     'amount' => $commission,
-                    'status' => 'PENDENTE',
+                    'status' => 'APROVADA',
                 ]);
             }
             Mailer::send($order['user_email'], 'Pagamento aprovado', 'Pagamento confirmado para a fatura ' . $invoice['numero'] . '. O seu trabalho segue para execução.');
@@ -126,7 +129,8 @@ class AdminController
             'paid' => (float) $pdo->query("SELECT COALESCE(SUM(valor_total),0) FROM invoices WHERE estado='PAGA'")->fetchColumn(),
             'pending' => (float) $pdo->query("SELECT COALESCE(SUM(valor_total),0) FROM invoices WHERE estado!='PAGA'")->fetchColumn(),
         ];
-        Response::json(['metrics' => $totals]);
+        $statusBreakdown = $pdo->query("SELECT estado, COUNT(*) as total FROM orders GROUP BY estado")->fetchAll();
+        Response::json(['metrics' => $totals, 'status' => $statusBreakdown]);
     }
 
     public static function feedback(): void
@@ -139,5 +143,37 @@ class AdminController
     {
         self::requireAdmin();
         Response::json(['commissions' => AffiliateCommission::listForAdmin()]);
+    }
+
+    public static function payouts(): void
+    {
+        self::requireAdmin();
+        Response::json(['payouts' => AffiliatePayout::listAll()]);
+    }
+
+    public static function updatePayout(): void
+    {
+        $admin = self::requireAdmin();
+        $payoutId = (int) ($_POST['payout_id'] ?? 0);
+        $status = $_POST['status'] ?? 'PENDENTE';
+        $notes = $_POST['notes'] ?? null;
+        $payout = AffiliatePayout::find($payoutId);
+        if (!$payout) {
+            Response::json(['message' => 'Solicitação não encontrada'], 404);
+            return;
+        }
+        AffiliatePayout::updateStatus($payoutId, $status, $admin['id'], $notes);
+        if ($status === 'APROVADO' && !empty($payout['referral_code'])) {
+            AffiliateCommission::allocateToPayout($payout['referral_code'], $payoutId);
+        }
+        Mailer::send($payout['email'], 'Atualização do pagamento de afiliado', 'Estado da sua solicitação #' . $payoutId . ': ' . $status);
+        AuditHelper::log($admin['id'], 'affiliate:payout:update', ['payout_id' => $payoutId, 'status' => $status]);
+        Response::json(['message' => 'Pagamento de afiliado atualizado']);
+    }
+
+    public static function audits(): void
+    {
+        self::requireAdmin();
+        Response::json(['audits' => Audit::listRecent()]);
     }
 }

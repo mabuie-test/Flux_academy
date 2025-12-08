@@ -38,6 +38,8 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 - `POST /api/orders/proof` — upload de comprovativo de pagamento (form-data)
 - `GET  /api/orders/deliveries` — documentos finais disponíveis para o cliente
 - `POST /api/orders/feedback` — avaliação pós-entrega (rating, nota, comentário)
+- `GET  /api/affiliates/summary` — comissões, saldo e pedidos de levantamento do afiliado
+- `POST /api/affiliates/request-payout` — solicitar levantamento do saldo aprovado
 - `GET  /api/orders` — listar encomendas do cliente autenticado
 - `GET  /api/orders/{id}` — detalhe de encomenda (cliente dono ou admin)
 - `GET  /api/admin/orders` — lista completa para administradores
@@ -47,6 +49,9 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 - `GET/POST /api/admin/users` — listagem e ativação/desativação de contas
 - `GET /api/admin/metrics` — totais e somas de faturação
 - `GET /api/admin/commissions` — acompanhamento das comissões de afiliados
+- `GET /api/admin/payouts` — pedidos de levantamento dos afiliados
+- `POST /api/admin/payouts/update` — aprovar ou rejeitar levantamentos
+- `GET /api/admin/audits` — registo recente de operações sensíveis
 
 Autenticação: envie `Authorization: Bearer <token>` devolvido no login/registo.
 
@@ -57,6 +62,7 @@ Preço base actual: **35 MZN** por página (configurável via `BASE_PRICE_PER_PA
 - `php-app/src/` — configuração, controladores, modelos, helpers (JWT, auditoria, mailer, pricing).
 - `php-app/schema.sql` — tabelas MySQL (users, orders, invoices, audits, afiliados/payouts, etc.).
 - Tabelas adicionais: `affiliate_commissions` para créditos de referência (18%) e `feedbacks` para avaliações pós-entrega.
+- Campos recentes: `orders.referred_by_code` guarda o código usado em cada pedido; `affiliate_payouts` tem método, notas e responsável pela aprovação.
 - `registo.txt` — guia rápido de registo de administradores via API.
 
 ## Notas

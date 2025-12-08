@@ -27,16 +27,31 @@
       <p class="muted">Ative/desative contas e acompanhe referências.</p>
       <div id="admin-users" class="list"></div>
     </section>
-    <section class="card">
-      <h2>Métricas</h2>
-      <p id="admin-metrics" class="muted">A carregar...</p>
+    <section class="card grid-two">
+      <div>
+        <h2>Métricas</h2>
+        <p id="admin-metrics" class="muted">A carregar...</p>
+        <canvas id="status-chart" height="180"></canvas>
+      </div>
+      <div>
+        <h2>Auditoria</h2>
+        <p class="muted">Registo de login, faturas, uploads e decisões.</p>
+        <div id="admin-audits" class="list"></div>
+      </div>
     </section>
-    <section class="card">
-      <h2>Comissões de afiliados</h2>
-      <div id="admin-commissions" class="list"></div>
+    <section class="card grid-two">
+      <div>
+        <h2>Comissões de afiliados</h2>
+        <div id="admin-commissions" class="list"></div>
+      </div>
+      <div>
+        <h2>Pagamentos de afiliados</h2>
+        <div id="admin-payouts" class="list"></div>
+      </div>
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/admin.js"></script>
 </body>
 </html>
