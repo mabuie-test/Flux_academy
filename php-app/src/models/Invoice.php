@@ -27,6 +27,12 @@ class Invoice
         $stmt->execute([':estado' => $estado, ':id' => $id]);
     }
 
+    public static function saveComprovativo(int $id, string $path): void
+    {
+        $stmt = Database::pdo()->prepare('UPDATE invoices SET comprovativo = :path, estado = "PENDENTE_VALIDACAO" WHERE id = :id');
+        $stmt->execute([':path' => $path, ':id' => $id]);
+    }
+
     public static function findById(int $id): ?array
     {
         $stmt = Database::pdo()->prepare('SELECT * FROM invoices WHERE id = :id LIMIT 1');

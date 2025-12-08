@@ -27,18 +27,24 @@ async function loadInvoice() {
     if (!res.ok) throw new Error(data.message || 'Não foi possível carregar a fatura');
     const order = data.order;
     const body = document.getElementById('invoice-body');
+    const materials = order.materiais_uploads ? JSON.parse(order.materiais_uploads) : [];
+    const proofForm = document.getElementById('proof-form');
+    if (proofForm) {
+      proofForm.dataset.invoice = order.invoice_id || order.id;
+    }
     body.innerHTML = `
       <p><strong>Fatura:</strong> ${order.invoice_numero || '—'}</p>
       <p><strong>Estado:</strong> ${order.invoice_estado || 'EMITIDA'}</p>
-      <p><strong>Cliente:</strong> ${order.user_id}</p>
       <p><strong>Trabalho:</strong> ${order.tipo} (${order.area})</p>
       <p><strong>Nível:</strong> ${order.nivel} · Páginas: ${order.paginas}</p>
       <p><strong>Complexidade:</strong> ${order.complexidade} · Urgência: ${order.urgencia}</p>
-      <p><strong>Valor:</strong> ${order.valor_total || '—'} MZN</p>
+      <p><strong>Valor:</strong> ${order.valor_total || order.total || '—'} MZN</p>
+      <p><strong>Materiais fornecidos:</strong> ${materials.length ? materials.map((m) => `<a href="${m}" target="_blank">${m.split('/').pop()}</a>`).join(', ') : 'Nenhum'}</p>
       <hr />
       <p><strong>Pagamento M-Pesa</strong></p>
       <p>Número: 851619970 · Titular: Maria António Chicavele</p>
-      <p class="muted">Após pagar, envie o comprovativo para o suporte.</p>
+      <p class="muted">Após pagar, envie o comprovativo nesta página.</p>
+      ${order.final_file ? `<p class="success">Documento final: <a href="${order.final_file}" target="_blank">download</a></p>` : ''}
     `;
   } catch (err) {
     alert(err.message);
@@ -48,8 +54,32 @@ async function loadInvoice() {
 const refreshBtn = document.getElementById('refresh-invoice');
 if (refreshBtn) refreshBtn.onclick = loadInvoice;
 const backBtn = document.getElementById('back-dashboard');
-if (backBtn) backBtn.onclick = () => (window.location.href = '/index.html');
+if (backBtn) backBtn.onclick = () => (window.location.href = '/documents.html');
 const pdfBtn = document.getElementById('download-pdf');
-if (pdfBtn) pdfBtn.onclick = () => alert('Download de PDF não disponível nesta versão PHP.');
+if (pdfBtn) pdfBtn.onclick = () => window.open(`/invoice.html?id=${orderId}`, '_blank');
+
+const proofForm = document.getElementById('proof-form');
+if (proofForm) {
+  proofForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!requireAuth()) return;
+    const form = new FormData();
+    form.set('invoice_id', proofForm.dataset.invoice || (new URLSearchParams(window.location.search)).get('invoice_id') || '');
+    form.set('order_id', orderId);
+    const fileField = document.getElementById('proof-file');
+    if (fileField?.files?.length) {
+      form.append('comprovativo', fileField.files[0]);
+    }
+    try {
+      const res = await fetch(`${apiBase}/orders/proof`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}` }, body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Falha ao enviar comprovativo');
+      alert('Comprovativo enviado com sucesso.');
+      loadInvoice();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+}
 
 loadInvoice();

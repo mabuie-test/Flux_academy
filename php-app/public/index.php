@@ -23,6 +23,17 @@ if (str_starts_with($uri, '/api/')) {
 }
 
 $publicRoot = realpath(__DIR__);
+$uploadsRoot = realpath(dirname(__DIR__) . '/uploads');
+
+if ($uploadsRoot && str_starts_with($uri, '/uploads/')) {
+    $file = realpath($uploadsRoot . str_replace('..', '', substr($uri, 8)));
+    if ($file && is_file($file) && str_starts_with($file, $uploadsRoot)) {
+        header('Content-Type: application/octet-stream');
+        readfile($file);
+        return;
+    }
+}
+
 $target = $uri === '/' ? $publicRoot . '/index.html' : realpath($publicRoot . $uri);
 
 if ($target && is_file($target) && str_starts_with($target, $publicRoot)) {

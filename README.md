@@ -35,10 +35,18 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 - `POST /api/auth/admin-register` — registo de administrador (JSON: name, email, password, setupToken)
 - `POST /api/orders/quote` — cálculo de preço (JSON: paginas, nivel, complexidade, urgencia)
 - `POST /api/orders` — criação de encomenda + fatura (form-data; requer Bearer token)
+- `POST /api/orders/proof` — upload de comprovativo de pagamento (form-data)
+- `GET  /api/orders/deliveries` — documentos finais disponíveis para o cliente
+- `POST /api/orders/feedback` — avaliação pós-entrega (rating, nota, comentário)
 - `GET  /api/orders` — listar encomendas do cliente autenticado
 - `GET  /api/orders/{id}` — detalhe de encomenda (cliente dono ou admin)
 - `GET  /api/admin/orders` — lista completa para administradores
 - `POST /api/admin/invoices/approve` — marcar fatura como paga (admin)
+- `POST /api/admin/invoices/reject` — rejeitar um pagamento/prova (admin)
+- `POST /api/admin/orders/final-upload` — envio do documento final para o cliente
+- `GET/POST /api/admin/users` — listagem e ativação/desativação de contas
+- `GET /api/admin/metrics` — totais e somas de faturação
+- `GET /api/admin/commissions` — acompanhamento das comissões de afiliados
 
 Autenticação: envie `Authorization: Bearer <token>` devolvido no login/registo.
 
@@ -48,6 +56,7 @@ Preço base actual: **35 MZN** por página (configurável via `BASE_PRICE_PER_PA
 - `php-app/public/` — páginas HTML/JS/CSS e front controller `index.php` que serve a API e os assets estáticos.
 - `php-app/src/` — configuração, controladores, modelos, helpers (JWT, auditoria, mailer, pricing).
 - `php-app/schema.sql` — tabelas MySQL (users, orders, invoices, audits, afiliados/payouts, etc.).
+- Tabelas adicionais: `affiliate_commissions` para créditos de referência (18%) e `feedbacks` para avaliações pós-entrega.
 - `registo.txt` — guia rápido de registo de administradores via API.
 
 ## Notas

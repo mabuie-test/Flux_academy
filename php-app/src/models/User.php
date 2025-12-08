@@ -36,4 +36,16 @@ class User
         $row = $stmt->fetch();
         return $row ?: null;
     }
+
+    public static function listAll(): array
+    {
+        $stmt = Database::pdo()->query('SELECT id, name, email, role, active, referral_code, referred_by, created_at FROM users ORDER BY id DESC');
+        return $stmt->fetchAll();
+    }
+
+    public static function setActive(int $id, bool $active): void
+    {
+        $stmt = Database::pdo()->prepare('UPDATE users SET active = :active WHERE id = :id');
+        $stmt->execute([':active' => $active ? 1 : 0, ':id' => $id]);
+    }
 }

@@ -58,6 +58,10 @@ if (orderForm) {
       if (raw.get('materialsUsagePercent')) {
         payload.set('materiais_percentual', raw.get('materialsUsagePercent'));
       }
+      const materialsField = document.getElementById('materialsFiles');
+      if (materialsField?.files?.length) {
+        Array.from(materialsField.files).forEach((file) => payload.append('materiais_uploads[]', file));
+      }
     }
     try {
       const res = await fetch(`${apiBase}/orders`, {
@@ -124,6 +128,7 @@ async function loadOrders() {
         <p>Estado: <strong>${order.estado}</strong></p>
         <p>Fatura: ${order.invoice_numero || '—'} (${order.invoice_estado || 'EMITIDA'})</p>
         <p>Total: ${order.valor_total || '—'}</p>
+        ${order.final_file ? `<p class="success">Trabalho final disponível: <a href="${order.final_file}" target="_blank">baixar</a></p>` : ''}
         <div class="stacked-actions">
           <a class="primary" href="/invoice.html?id=${order.id}" target="_blank">Ver fatura</a>
         </div>

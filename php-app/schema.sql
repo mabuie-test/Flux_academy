@@ -26,6 +26,9 @@ CREATE TABLE orders (
   invoice_id INT,
   materiais_info TEXT,
   materiais_percentual VARCHAR(20),
+  materiais_uploads JSON,
+  final_file VARCHAR(255),
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -40,6 +43,7 @@ CREATE TABLE invoices (
   estado VARCHAR(50) DEFAULT 'EMITIDA',
   vencimento DATETIME,
   comprovativo VARCHAR(255),
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (order_id) REFERENCES orders(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
@@ -59,5 +63,29 @@ CREATE TABLE affiliate_payouts (
   valor DECIMAL(10,2) NOT NULL,
   status VARCHAR(50) DEFAULT 'PENDENTE',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE affiliate_commissions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  referrer_code VARCHAR(20) NOT NULL,
+  beneficiary_email VARCHAR(150) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  status VARCHAR(50) DEFAULT 'PENDENTE',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+
+CREATE TABLE feedbacks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  user_id INT NOT NULL,
+  rating INT,
+  grade VARCHAR(20),
+  comment TEXT,
+  admin_reply TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (order_id) REFERENCES orders(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );

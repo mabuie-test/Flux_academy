@@ -30,6 +30,18 @@ if ($uri === '/api/orders' && $method === 'GET') {
     OrderController::index();
     return;
 }
+if ($uri === '/api/orders/proof' && $method === 'POST') {
+    OrderController::uploadProof();
+    return;
+}
+if ($uri === '/api/orders/deliveries' && $method === 'GET') {
+    OrderController::deliveries();
+    return;
+}
+if ($uri === '/api/orders/feedback' && $method === 'POST') {
+    OrderController::feedback();
+    return;
+}
 if (preg_match('#^/api/orders/(\d+)$#', $uri, $matches) && $method === 'GET') {
     OrderController::show((int) $matches[1]);
     return;
@@ -38,8 +50,36 @@ if ($uri === '/api/admin/orders' && $method === 'GET') {
     AdminController::listOrders();
     return;
 }
+if ($uri === '/api/admin/orders/final-upload' && $method === 'POST') {
+    AdminController::uploadFinal();
+    return;
+}
 if ($uri === '/api/admin/invoices/approve' && $method === 'POST') {
     AdminController::approvePayment();
+    return;
+}
+if ($uri === '/api/admin/invoices/reject' && $method === 'POST') {
+    AdminController::rejectPayment();
+    return;
+}
+if ($uri === '/api/admin/users' && $method === 'GET') {
+    AdminController::listUsers();
+    return;
+}
+if ($uri === '/api/admin/users/toggle' && $method === 'POST') {
+    AdminController::toggleUser();
+    return;
+}
+if ($uri === '/api/admin/feedback' && $method === 'GET') {
+    AdminController::feedback();
+    return;
+}
+if ($uri === '/api/admin/commissions' && $method === 'GET') {
+    AdminController::commissions();
+    return;
+}
+if ($uri === '/api/admin/metrics' && $method === 'GET') {
+    AdminController::metrics();
     return;
 }
 
