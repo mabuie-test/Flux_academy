@@ -111,6 +111,14 @@ if ($uri === '/api/admin/audits' && $method === 'GET') {
     AdminController::audits();
     return;
 }
+if ($uri === '/api/admin/chat' && $method === 'GET') {
+    AdminController::chatMessages();
+    return;
+}
+if ($uri === '/api/admin/chat' && $method === 'POST') {
+    AdminController::postChatMessage();
+    return;
+}
 if ($uri === '/api/admin/services' && $method === 'GET') {
     ServiceController::list();
     return;

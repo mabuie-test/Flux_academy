@@ -305,10 +305,12 @@ if (document.getElementById('admin-orders')) {
   loadCommissions();
   loadPayouts();
   loadAudits();
+  loadAdminChat();
   setInterval(() => {
     loadOrders();
     loadMetrics();
     loadAudits();
+    loadAdminChat();
   }, 20000);
 }
 
@@ -357,4 +359,54 @@ async function updateServiceStatus(id, status) {
 if (document.getElementById('admin-services')) {
   loadServices();
   setInterval(loadServices, 25000);
+}
+
+async function loadAdminChat() {
+  const chatBox = document.getElementById('admin-chat');
+  if (!chatBox || !authToken) return;
+  const filter = document.getElementById('chat-order')?.value;
+  const res = await fetch(`${apiBase}/admin/chat${filter ? `?order_id=${filter}` : ''}`, { headers: { Authorization: `Bearer ${authToken}` } });
+  const data = await res.json();
+  chatBox.innerHTML = '';
+  if (!res.ok) {
+    chatBox.innerHTML = `<p class="muted">${data.message || 'Erro ao carregar estação'}</p>`;
+    return;
+  }
+  (data.messages || []).forEach((msg) => {
+    const row = document.createElement('div');
+    row.className = 'chat-row';
+    row.innerHTML = `
+      <div>
+        <strong>${msg.author || 'Admin'}</strong> ${msg.order_id ? `<span class="badge">#${msg.order_id}</span>` : ''}
+        <p class="muted">${msg.created_at || ''}</p>
+        <p>${msg.message || ''}</p>
+        ${msg.attachment ? `<a href="${msg.attachment}" target="_blank">Ver anexo</a>` : ''}
+      </div>
+    `;
+    chatBox.appendChild(row);
+  });
+}
+
+async function sendAdminChat() {
+  const msgInput = document.getElementById('chat-message');
+  const fileInput = document.getElementById('chat-file');
+  const orderInput = document.getElementById('chat-order');
+  const form = new FormData();
+  form.set('message', msgInput?.value || '');
+  if (orderInput?.value) form.set('order_id', orderInput.value);
+  if (fileInput?.files?.length) form.append('attachment', fileInput.files[0]);
+  const res = await fetch(`${apiBase}/admin/chat`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}` }, body: form });
+  const data = await res.json();
+  if (!res.ok) return toast(data.message || 'Erro ao enviar nota');
+  toast('Nota registada');
+  if (msgInput) msgInput.value = '';
+  if (fileInput) fileInput.value = '';
+  loadAdminChat();
+}
+
+const chatSend = document.getElementById('chat-send');
+if (chatSend) {
+  chatSend.onclick = sendAdminChat;
+  document.getElementById('chat-refresh')?.addEventListener('click', loadAdminChat);
+  setInterval(loadAdminChat, 15000);
 }

@@ -54,6 +54,7 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 - `GET /api/admin/payouts` — pedidos de levantamento dos afiliados
 - `POST /api/admin/payouts/update` — aprovar ou rejeitar levantamentos
 - `GET /api/admin/audits` — registo recente de operações sensíveis
+- `GET/POST /api/admin/chat` — estação interna para admins trocarem notas e anexos (pode associar a um pedido)
 - `GET/POST /api/admin/services` — acompanhar pedidos de serviços especializados e atualizar estado
 
 Autenticação: envie `Authorization: Bearer <token>` devolvido no login/registo.
@@ -70,7 +71,7 @@ Preço base actual: **35 MZN** por página (configurável via `BASE_PRICE_PER_PA
 - `php-app/public/` — páginas HTML/JS/CSS e front controller `index.php` que serve a API e os assets estáticos.
 - `php-app/src/` — configuração, controladores, modelos, helpers (JWT, auditoria, mailer, pricing).
 - `php-app/schema.sql` — tabelas MySQL (users, orders, invoices, audits, afiliados/payouts, etc.).
-- Tabelas adicionais: `affiliate_commissions` para créditos de referência (18%) e `feedbacks` para avaliações pós-entrega.
+- Tabelas adicionais: `affiliate_commissions` para créditos de referência (18%), `feedbacks` para avaliações pós-entrega e `admin_messages` para o chat interno.
 - Campos recentes: `orders.referred_by_code` guarda o código usado em cada pedido; `affiliate_payouts` tem método, notas e responsável pela aprovação.
 - Nova tabela `service_requests` acompanha revisões linguísticas, estatística, apresentações, CV/cartas e verificação de plágio (com anexos opcionais) com fluxo de estado para o admin.
 - `registo.txt` — guia rápido de registo de administradores via API.
@@ -91,3 +92,4 @@ Preço base actual: **35 MZN** por página (configurável via `BASE_PRICE_PER_PA
 - Node.js foi removido; todo o backend e frontend são servidos em PHP para funcionar em ambientes de alojamento apenas-PHP.
 - Emails usam PHPMailer; configure host, utilizador e remetente no `.env`.
 - A aplicação serve as páginas estáticas e a API do mesmo `index.php`; mantenha o webroot em `php-app/public/`.
+- Contactos destacados no frontend: +258 851 619 970 (Chamadas/WhatsApp), suporte@fluxosoftwares.com e links sociais; copyright © 2024 Fluxosoftwares.

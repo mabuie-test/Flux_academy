@@ -85,9 +85,14 @@ class OrderController
         ]);
         Order::attachInvoice($orderId, $invoiceId);
         AuditHelper::log($user['id'], 'order:create', ['order_id' => $orderId]);
+        AuditHelper::log($user['id'], 'invoice:emitida', ['order_id' => $orderId, 'invoice_id' => $invoiceId, 'total' => $quote['total']]);
         Mailer::send($user['email'], 'Fatura emitida', 'A sua fatura ' . $invoiceNumber . ' foi emitida com valor ' . $quote['total']);
-        $adminEmail = Config::get('ADMIN_NOTIFY_EMAIL');
-        if ($adminEmail) {
+        $adminRecipients = User::adminEmails();
+        $fallbackAdmin = Config::get('ADMIN_NOTIFY_EMAIL');
+        if ($fallbackAdmin && !in_array($fallbackAdmin, $adminRecipients)) {
+            $adminRecipients[] = $fallbackAdmin;
+        }
+        foreach ($adminRecipients as $adminEmail) {
             Mailer::send($adminEmail, 'Nova encomenda criada', 'Pedido #' . $orderId . ' criado para ' . $user['email']);
         }
         Response::json([
@@ -119,8 +124,13 @@ class OrderController
         Invoice::saveComprovativo($invoiceId, '/uploads/comprovativos/' . $safeName);
         Order::updateEstado((int) ($_POST['order_id'] ?? 0), 'PAGAMENTO_EM_VALIDACAO');
         AuditHelper::log($user['id'], 'invoice:proof', ['invoice_id' => $invoiceId]);
-        $adminEmail = Config::get('ADMIN_NOTIFY_EMAIL');
-        if ($adminEmail) {
+        Mailer::send($user['email'], 'Comprovativo recebido', 'Recebemos o comprovativo da fatura #' . $invoiceId . '. Iremos validar em breve.');
+        $adminRecipients = User::adminEmails();
+        $fallbackAdmin = Config::get('ADMIN_NOTIFY_EMAIL');
+        if ($fallbackAdmin && !in_array($fallbackAdmin, $adminRecipients)) {
+            $adminRecipients[] = $fallbackAdmin;
+        }
+        foreach ($adminRecipients as $adminEmail) {
             Mailer::send($adminEmail, 'Comprovativo submetido', 'O cliente ' . $user['email'] . ' submeteu comprovativo da fatura #' . $invoiceId);
         }
         Response::json(['message' => 'Comprovativo enviado']);

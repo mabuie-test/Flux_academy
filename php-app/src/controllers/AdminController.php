@@ -12,6 +12,7 @@ use App\Models\Feedback;
 use App\Models\AffiliateCommission;
 use App\Models\AffiliatePayout;
 use App\Models\Audit;
+use App\Models\AdminMessage;
 use App\Config\Config;
 use App\Config\Database;
 
@@ -52,6 +53,7 @@ class AdminController
                 ]);
             }
             Mailer::send($order['user_email'], 'Pagamento aprovado', 'Pagamento confirmado para a fatura ' . $invoice['numero'] . '. O seu trabalho segue para execução.');
+            AuditHelper::log((int) $order['user_id'], 'invoice:aprovada', ['invoice_id' => $invoiceId, 'order_id' => $order['id']]);
         }
         AuditHelper::log($admin['id'], 'invoice:approve', ['invoice_id' => $invoiceId]);
         Response::json(['message' => 'Pagamento validado']);
@@ -64,6 +66,11 @@ class AdminController
         Invoice::updateEstado($invoiceId, 'PENDENTE');
         if (!empty($_POST['order_id'])) {
             Order::updateEstado((int) $_POST['order_id'], 'PENDENTE_PAGAMENTO');
+        }
+        $order = !empty($_POST['order_id']) ? Order::findWithUser((int) $_POST['order_id']) : null;
+        if ($order) {
+            Mailer::send($order['user_email'], 'Pagamento rejeitado', 'O comprovativo da fatura #' . $invoiceId . ' foi rejeitado. Envie um novo ficheiro ou contacte o suporte.');
+            AuditHelper::log((int) $order['user_id'], 'invoice:rejeitada', ['invoice_id' => $invoiceId, 'order_id' => $order['id']]);
         }
         AuditHelper::log($admin['id'], 'invoice:reject', ['invoice_id' => $invoiceId]);
         Response::json(['message' => 'Pagamento rejeitado']);
@@ -91,6 +98,7 @@ class AdminController
         $order = Order::findWithUser($orderId);
         if ($order) {
             Mailer::send($order['user_email'], 'Trabalho entregue', 'O documento final para a encomenda #' . $orderId . ' está disponível para download.');
+            AuditHelper::log((int) $order['user_id'], 'order:entregue', ['order_id' => $orderId]);
         }
         AuditHelper::log($admin['id'], 'order:deliver', ['order_id' => $orderId]);
         Response::json(['message' => 'Documento final enviado']);
@@ -178,5 +186,36 @@ class AdminController
     {
         self::requireAdmin();
         Response::json(['audits' => Audit::listRecent()]);
+    }
+
+    public static function chatMessages(): void
+    {
+        self::requireAdmin();
+        $orderId = isset($_GET['order_id']) ? (int) $_GET['order_id'] : null;
+        Response::json(['messages' => AdminMessage::listRecent($orderId)]);
+    }
+
+    public static function postChatMessage(): void
+    {
+        $admin = self::requireAdmin();
+        $orderId = isset($_POST['order_id']) && $_POST['order_id'] !== '' ? (int) $_POST['order_id'] : null;
+        $message = trim($_POST['message'] ?? '');
+        if (!$message && empty($_FILES['attachment']['tmp_name'])) {
+            Response::json(['message' => 'Mensagem ou anexo obrigatório'], 400);
+            return;
+        }
+        $attachment = null;
+        if (!empty($_FILES['attachment']['tmp_name'])) {
+            $dir = dirname(__DIR__, 2) . '/uploads/admin-chat';
+            if (!is_dir($dir)) mkdir($dir, 0775, true);
+            $safeName = uniqid('adm_') . '-' . preg_replace('/[^a-zA-Z0-9\.\-_]/', '_', $_FILES['attachment']['name']);
+            $dest = $dir . '/' . $safeName;
+            if (move_uploaded_file($_FILES['attachment']['tmp_name'], $dest)) {
+                $attachment = '/uploads/admin-chat/' . $safeName;
+            }
+        }
+        $msgId = AdminMessage::create($admin['id'], $orderId, $message, $attachment);
+        AuditHelper::log($admin['id'], 'admin:chat', ['message_id' => $msgId, 'order_id' => $orderId]);
+        Response::json(['message' => 'Nota registada', 'id' => $msgId]);
     }
 }

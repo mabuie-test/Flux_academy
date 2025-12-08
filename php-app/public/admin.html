@@ -66,7 +66,37 @@
         <div id="admin-payouts" class="list"></div>
       </div>
     </section>
+
+    <section class="card">
+      <h2>Estação de trabalho dos administradores</h2>
+      <p class="muted">Troque mensagens e documentos entre admins, com opção de associar a uma encomenda.</p>
+      <div class="inline-group">
+        <input type="number" id="chat-order" placeholder="Filtrar por encomenda (opcional)" />
+        <button id="chat-refresh" class="ghost">Atualizar</button>
+      </div>
+      <div id="admin-chat" class="chat-board"></div>
+      <div class="chat-compose">
+        <textarea id="chat-message" rows="2" placeholder="Escreva uma nota interna"></textarea>
+        <div class="inline-group">
+          <input type="file" id="chat-file" />
+          <button id="chat-send" class="primary">Enviar</button>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer class="footer">
+    <div>
+      <strong>Contacto directo</strong>
+      <p>Chamadas & WhatsApp: <a href="tel:+258851619970">+258 851 619 970</a></p>
+      <p>Email: <a href="mailto:suporte@fluxosoftwares.com">suporte@fluxosoftwares.com</a></p>
+    </div>
+    <div>
+      <strong>Redes</strong>
+      <p><a href="https://wa.me/258851619970" target="_blank">WhatsApp</a> · <a href="https://www.instagram.com" target="_blank">Instagram</a> · <a href="https://www.facebook.com" target="_blank">Facebook</a></p>
+      <p class="muted">© 2024 Fluxosoftwares</p>
+    </div>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/admin.js"></script>

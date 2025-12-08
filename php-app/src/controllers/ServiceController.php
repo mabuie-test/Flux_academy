@@ -46,8 +46,12 @@ class ServiceController
 
         AuditHelper::log($user['id'], 'service:create', ['service_id' => $serviceId, 'categoria' => $data['categoria']]);
         Mailer::send($user['email'], 'Pedido recebido: ' . $data['categoria'], 'Recebemos o seu pedido especializado. Em breve retornaremos.');
-        $adminEmail = Config::get('ADMIN_NOTIFY_EMAIL');
-        if ($adminEmail) {
+        $adminEmails = \App\Models\User::adminEmails();
+        $fallback = Config::get('ADMIN_NOTIFY_EMAIL');
+        if ($fallback && !in_array($fallback, $adminEmails)) {
+            $adminEmails[] = $fallback;
+        }
+        foreach ($adminEmails as $adminEmail) {
             Mailer::send($adminEmail, 'Novo serviço solicitado', 'Serviço ' . $data['categoria'] . ' solicitado por ' . $user['email']);
         }
 

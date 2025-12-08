@@ -59,6 +59,12 @@ class User
         return $stmt->fetchAll();
     }
 
+    public static function adminEmails(): array
+    {
+        $stmt = Database::pdo()->query("SELECT email FROM users WHERE role='admin' AND active=1");
+        return array_column($stmt->fetchAll(), 'email');
+    }
+
     public static function setActive(int $id, bool $active): void
     {
         $stmt = Database::pdo()->prepare('UPDATE users SET active = :active WHERE id = :id');
