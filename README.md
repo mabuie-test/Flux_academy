@@ -37,6 +37,7 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 - `POST /api/orders` — criação de encomenda + fatura (form-data; requer Bearer token)
 - `POST /api/orders/proof` — upload de comprovativo de pagamento (form-data)
 - `GET  /api/orders/deliveries` — documentos finais disponíveis para o cliente
+- `GET  /api/notifications` — alertas pessoais (auditoria filtrada por utilizador)
 - `POST /api/orders/feedback` — avaliação pós-entrega (rating, nota, comentário)
 - `GET  /api/affiliates/summary` — comissões, saldo e pedidos de levantamento do afiliado
 - `POST /api/affiliates/request-payout` — solicitar levantamento do saldo aprovado
@@ -48,7 +49,7 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 - `POST /api/admin/invoices/reject` — rejeitar um pagamento/prova (admin)
 - `POST /api/admin/orders/final-upload` — envio do documento final para o cliente
 - `GET/POST /api/admin/users` — listagem e ativação/desativação de contas
-- `GET /api/admin/metrics` — totais e somas de faturação
+- `GET /api/admin/metrics` — totais, somas de faturação, receita mensal, top serviços e ranking de afiliados
 - `GET /api/admin/commissions` — acompanhamento das comissões de afiliados
 - `GET /api/admin/payouts` — pedidos de levantamento dos afiliados
 - `POST /api/admin/payouts/update` — aprovar ou rejeitar levantamentos

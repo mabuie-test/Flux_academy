@@ -205,6 +205,20 @@ class OrderController
         Response::json(['message' => 'Pedido registado', 'payout_id' => $payoutId]);
     }
 
+    public static function notifications(): void
+    {
+        $user = Auth::requireUser();
+        $records = \App\Models\Audit::listForUser($user['id']);
+        Response::json(['notifications' => array_map(function ($row) {
+            $meta = json_decode($row['meta'] ?? '[]', true);
+            return [
+                'action' => $row['action'],
+                'meta' => $meta,
+                'created_at' => $row['created_at'] ?? null,
+            ];
+        }, $records)]);
+    }
+
     public static function show(int $orderId): void
     {
         $user = Auth::requireUser();

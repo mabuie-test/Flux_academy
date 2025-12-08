@@ -22,4 +22,13 @@ class Audit
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public static function listForUser(int $userId, int $limit = 20): array
+    {
+        $stmt = Database::pdo()->prepare('SELECT * FROM audits WHERE user_id = :user_id ORDER BY id DESC LIMIT :lim');
+        $stmt->bindValue(':user_id', $userId, \PDO::PARAM_INT);
+        $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }

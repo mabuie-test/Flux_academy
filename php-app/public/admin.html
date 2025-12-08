@@ -26,6 +26,15 @@
       <h2>Pedidos de serviços especializados</h2>
       <p class="muted">Revisões, estatística, apresentações, CV e verificação de plágio.</p>
       <div id="admin-services" class="grid"></div>
+      <div class="grid-two">
+        <div>
+          <h3>Serviços mais pedidos</h3>
+          <canvas id="services-chart" height="160"></canvas>
+        </div>
+        <div class="muted">
+          Use os filtros do painel para acompanhar a produtividade e a procura por cada serviço, garantindo decisões mais rápidas.
+        </div>
+      </div>
     </section>
     <section class="card">
       <h2>Utilizadores</h2>
@@ -37,6 +46,7 @@
         <h2>Métricas</h2>
         <p id="admin-metrics" class="muted">A carregar...</p>
         <canvas id="status-chart" height="180"></canvas>
+        <canvas id="revenue-chart" height="180"></canvas>
       </div>
       <div>
         <h2>Auditoria</h2>
@@ -48,6 +58,8 @@
       <div>
         <h2>Comissões de afiliados</h2>
         <div id="admin-commissions" class="list"></div>
+        <h3>Top indicados</h3>
+        <div id="admin-affiliate-leaders" class="list"></div>
       </div>
       <div>
         <h2>Pagamentos de afiliados</h2>

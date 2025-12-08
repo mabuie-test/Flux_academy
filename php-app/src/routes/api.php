@@ -51,6 +51,10 @@ if ($uri === '/api/orders/deliveries' && $method === 'GET') {
     OrderController::deliveries();
     return;
 }
+if ($uri === '/api/notifications' && $method === 'GET') {
+    OrderController::notifications();
+    return;
+}
 if ($uri === '/api/orders/feedback' && $method === 'POST') {
     OrderController::feedback();
     return;

@@ -160,6 +160,34 @@ async function loadOrders() {
 
 if (document.getElementById('orders-list')) {
   loadOrders();
+  setInterval(loadOrders, 20000);
+}
+
+async function loadNotifications() {
+  if (!requireAuth()) return;
+  try {
+    const res = await fetch(`${apiBase}/notifications`, { headers: { Authorization: `Bearer ${authToken}` } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Erro ao carregar alertas');
+    const list = document.getElementById('notifications-list');
+    if (!list) return;
+    list.innerHTML = '';
+    (data.notifications || []).forEach((n) => {
+      const item = document.createElement('div');
+      item.className = 'list-item';
+      const meta = n.meta || {};
+      const hint = meta.invoice_id ? `Fatura #${meta.invoice_id}` : meta.order_id ? `Encomenda #${meta.order_id}` : '';
+      item.innerHTML = `<div><strong>${n.action}</strong><p class="muted">${hint}</p></div><span class="badge">${n.created_at || ''}</span>`;
+      list.appendChild(item);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+if (document.getElementById('notifications-list')) {
+  loadNotifications();
+  setInterval(loadNotifications, 20000);
 }
 
 async function loadAffiliate() {

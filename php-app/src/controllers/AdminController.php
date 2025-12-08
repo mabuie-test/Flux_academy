@@ -130,7 +130,10 @@ class AdminController
             'pending' => (float) $pdo->query("SELECT COALESCE(SUM(valor_total),0) FROM invoices WHERE estado!='PAGA'")->fetchColumn(),
         ];
         $statusBreakdown = $pdo->query("SELECT estado, COUNT(*) as total FROM orders GROUP BY estado")->fetchAll();
-        Response::json(['metrics' => $totals, 'status' => $statusBreakdown]);
+        $trend = $pdo->query("SELECT DATE_FORMAT(created_at, '%Y-%m') as mes, COALESCE(SUM(valor_total),0) as total FROM invoices WHERE estado='PAGA' GROUP BY mes ORDER BY mes DESC LIMIT 6")->fetchAll();
+        $services = $pdo->query("SELECT categoria, COUNT(*) as total FROM service_requests GROUP BY categoria ORDER BY total DESC LIMIT 6")->fetchAll();
+        $affiliates = $pdo->query("SELECT referrer_code, COUNT(*) as total, COALESCE(SUM(amount),0) as valor FROM affiliate_commissions GROUP BY referrer_code ORDER BY valor DESC LIMIT 5")->fetchAll();
+        Response::json(['metrics' => $totals, 'status' => $statusBreakdown, 'trend' => $trend, 'services' => $services, 'affiliates' => $affiliates]);
     }
 
     public static function feedback(): void

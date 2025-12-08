@@ -1,6 +1,8 @@
 const apiBase = '/api';
 let authToken = localStorage.getItem('token') || '';
 let statusChart;
+let revenueChart;
+let servicesChart;
 
 function requireAdmin() {
   if (!authToken) {
@@ -181,6 +183,41 @@ async function loadMetrics() {
       options: { plugins: { legend: { position: 'bottom' } } },
     });
   }
+  if (window.Chart && document.getElementById('revenue-chart')) {
+    const ctx = document.getElementById('revenue-chart').getContext('2d');
+    if (revenueChart) revenueChart.destroy();
+    const trend = (data.trend || []).reverse();
+    revenueChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: trend.map((t) => t.mes),
+        datasets: [{ label: 'Receita mensal (MZN)', data: trend.map((t) => t.total), borderColor: '#1d4ed8', fill: false }],
+      },
+      options: { plugins: { legend: { display: true } } },
+    });
+  }
+  if (window.Chart && document.getElementById('services-chart')) {
+    const ctx = document.getElementById('services-chart').getContext('2d');
+    if (servicesChart) servicesChart.destroy();
+    servicesChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: (data.services || []).map((s) => s.categoria),
+        datasets: [{ label: 'Pedidos', data: (data.services || []).map((s) => s.total), backgroundColor: '#0ea5e9' }],
+      },
+      options: { indexAxis: 'y', plugins: { legend: { display: false } } },
+    });
+  }
+  const leaders = document.getElementById('admin-affiliate-leaders');
+  if (leaders) {
+    leaders.innerHTML = '';
+    (data.affiliates || []).forEach((a) => {
+      const row = document.createElement('div');
+      row.className = 'list-item';
+      row.innerHTML = `<div><strong>${a.referrer_code || '—'}</strong><p class="muted">${a.total} encomendas</p></div><span class="badge">${a.valor} MZN</span>`;
+      leaders.appendChild(row);
+    });
+  }
 }
 
 async function loadCommissions() {
@@ -268,6 +305,11 @@ if (document.getElementById('admin-orders')) {
   loadCommissions();
   loadPayouts();
   loadAudits();
+  setInterval(() => {
+    loadOrders();
+    loadMetrics();
+    loadAudits();
+  }, 20000);
 }
 
 async function loadServices() {
@@ -314,4 +356,5 @@ async function updateServiceStatus(id, status) {
 
 if (document.getElementById('admin-services')) {
   loadServices();
+  setInterval(loadServices, 25000);
 }
