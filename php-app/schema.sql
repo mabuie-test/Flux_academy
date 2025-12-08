@@ -1,0 +1,63 @@
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('cliente','admin') DEFAULT 'cliente',
+  active TINYINT(1) DEFAULT 1,
+  referral_code VARCHAR(20),
+  referred_by VARCHAR(20),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE orders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  tipo VARCHAR(100),
+  area VARCHAR(100),
+  nivel VARCHAR(50),
+  paginas INT,
+  norma VARCHAR(50),
+  complexidade VARCHAR(50),
+  urgencia VARCHAR(50),
+  descricao TEXT,
+  estado VARCHAR(50),
+  prazo_entrega DATETIME,
+  invoice_id INT,
+  materiais_info TEXT,
+  materiais_percentual VARCHAR(20),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE invoices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  user_id INT NOT NULL,
+  numero VARCHAR(50) NOT NULL,
+  valor_total DECIMAL(10,2) NOT NULL,
+  detalhes JSON,
+  estado VARCHAR(50) DEFAULT 'EMITIDA',
+  vencimento DATETIME,
+  comprovativo VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (order_id) REFERENCES orders(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE audits (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
+  action VARCHAR(150),
+  meta JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE affiliate_payouts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  valor DECIMAL(10,2) NOT NULL,
+  status VARCHAR(50) DEFAULT 'PENDENTE',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);

@@ -1,0 +1,7 @@
+node_modules
+.env
+uploads/comprovativos
+uploads/trabalhos
+npm-debug.log*
+php-app/vendor
+php-app/.env

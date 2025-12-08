@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flux Academy - Encomende Trabalhos Académicos</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Flux Academy</h1>
+    <div class="navbar">
+      <a class="anon-only" href="/login.html">Login</a>
+      <a class="anon-only" href="/register.html">Registo</a>
+      <a href="/documents.html" class="auth-only">Faturas e documentos</a>
+      <a href="/admin.html">Admin</a>
+      <a href="/terms.html">Termos</a>
+      <button id="logout" class="ghost auth-only">Terminar sessão</button>
+    </div>
+  </header>
+  <section class="hero">
+    <h2>Plataforma completa para encomendar trabalhos académicos</h2>
+    <p>Preencha o pedido, receba o preço automático, pague por M-Pesa e acompanhe cada etapa com transparência.</p>
+    <div class="hero-grid">
+      <div class="pill">⏱️ Prazo de pagamento e entrega monitorados</div>
+      <div class="pill">📄 Fatura detalhada com fatores de preço</div>
+      <div class="pill">🔒 Upload seguro de comprovativos</div>
+      <div class="pill">🎓 Suporte a TCC e projetos práticos</div>
+    </div>
+    <div class="cta-box">
+      <p>Veja o preço antes de confirmar e receba instruções de pagamento instantaneamente.</p>
+      <p><strong>Pague via M-Pesa nº 851619970, titular Maria António Chicavele.</strong></p>
+      <div class="cta-links"><a class="btn anon-only" href="/login.html">Já tenho conta</a><a class="btn ghost anon-only" href="/register.html">Criar conta</a></div>
+    </div>
+  </section>
+
+  <section class="container cards-grid">
+    <div class="card wide" id="order-card">
+      <h3>Nova Encomenda</h3>
+      <p class="muted">Faça login e mantenha o formulário ativo: mesmo autenticado pode continuar a simular e enviar pedidos.</p>
+      <form id="order-form">
+        <label>Tipo de trabalho</label>
+        <select name="workType" required>
+          <option value="artigo">Artigo académico</option>
+          <option value="relatorio">Relatório técnico</option>
+          <option value="monografia">Monografia</option>
+          <option value="tese">Tese</option>
+        </select>
+        <label>Área científica</label>
+        <select name="area" required>
+          <option value="engenharia">Engenharia</option>
+          <option value="gestao">Gestão</option>
+          <option value="saude">Saúde</option>
+          <option value="direito">Direito</option>
+          <option value="outra">Outra</option>
+        </select>
+        <label>Nível académico</label>
+        <select name="academicLevel">
+          <option value="tecnico">Técnico</option>
+          <option value="licenciatura">Licenciatura</option>
+          <option value="mestrado">Mestrado</option>
+          <option value="doutoramento">Doutoramento</option>
+        </select>
+        <label>Número de páginas</label>
+        <input type="number" name="pages" min="1" required />
+        <label>Norma de formatação</label>
+        <select name="formatting">
+          <option value="APA">APA</option>
+          <option value="ABNT">ABNT</option>
+          <option value="MLA">MLA</option>
+          <option value="OUTRA">Outra</option>
+        </select>
+        <label>Complexidade</label>
+        <select name="complexity">
+          <option value="basica">Básica</option>
+          <option value="intermedia">Intermédia</option>
+          <option value="avancada">Avançada</option>
+        </select>
+        <label>Urgência</label>
+        <select name="urgency">
+          <option value="normal">Normal</option>
+          <option value="72h">72h</option>
+          <option value="48h">48h</option>
+          <option value="24h">24h</option>
+        </select>
+        <label>Prazo desejado</label>
+        <input type="date" name="deliveryDeadline" />
+        <label>Descrição detalhada</label>
+        <textarea name="description" rows="3"></textarea>
+        <label>Código de afiliado (opcional)</label>
+        <input type="text" name="referralCode" placeholder="Se alguém indicou você, coloque o código aqui" />
+        <div class="inline-group">
+          <label>Tens materiais didáticos fornecidos?</label>
+          <select name="hasMaterials" id="has-materials">
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+        </div>
+        <div id="materials-extra" class="nested" style="display:none;">
+          <label>Percentagem prevista de uso dos materiais (%)</label>
+          <input type="number" name="materialsUsagePercent" min="0" max="100" />
+          <label>Enviar materiais (pdf, imagens, docx) - pode selecionar vários</label>
+          <input type="file" name="materials" multiple />
+        </div>
+      <button type="submit">Calcular e Encomendar</button>
+    </form>
+    <div id="quote-preview" class="quote"></div>
+  </div>
+  <div class="card wide">
+      <h3>As minhas encomendas</h3>
+      <div id="orders-list" class="list"></div>
+    </div>
+  </section>
+
+  <nav class="service-menu container">
+    <button onclick="document.getElementById('order-card').scrollIntoView({behavior:'smooth'})">Encomendas</button>
+    <button onclick="document.getElementById('tcc-card').scrollIntoView({behavior:'smooth'})">Acompanhamento TCC</button>
+    <button onclick="document.getElementById('special-card').scrollIntoView({behavior:'smooth'})">Encomendas práticas</button>
+    <button onclick="document.getElementById('invoice-area').scrollIntoView({behavior:'smooth'})">Gestão de faturas</button>
+    <button onclick="document.getElementById('deliveries-area').scrollIntoView({behavior:'smooth'})">Documentos recebidos</button>
+    <button onclick="window.open('/documents.html','_blank')">Página dedicada</button>
+  </nav>
+
+  <section id="order-details" class="container" style="display:none;">
+    <div class="card wide">
+      <h3>Resumo da encomenda</h3>
+      <div id="order-info"></div>
+      <div id="invoice-info" class="invoice-box"></div>
+      <form id="proof-form" enctype="multipart/form-data">
+        <label>Enviar comprovativo de pagamento (jpg, png, pdf)</label>
+        <input type="file" name="proof" />
+        <button type="submit">Submeter comprovativo</button>
+      </form>
+      <div id="final-download"></div>
+      <div id="status-history" class="timeline"></div>
+      <button id="back-button" type="button">Voltar</button>
+    </div>
+  </section>
+
+  <section class="container cards-grid">
+    <div class="card" id="tcc-card">
+      <h3>Acompanhamento de TCC</h3>
+      <p>Orientação na escolha de tema, consultoria, ajuda, correção e formatação.</p>
+      <form id="tcc-form">
+        <label>Nome</label><input name="contactName" required />
+        <label>Email</label><input type="email" name="contactEmail" required />
+        <label>Telefone</label><input name="contactPhone" />
+        <label>Objetivos</label><input name="goals" />
+        <label>Detalhes do projeto</label><textarea name="details" rows="3" required></textarea>
+        <button type="submit">Pedir acompanhamento</button>
+      </form>
+    </div>
+    <div class="card" id="special-card">
+      <h3>Encomendas especiais (eletrónica, programação, electricidade)</h3>
+      <p>Projetos práticos com análise e fatura após acerto com o cliente.</p>
+      <form id="special-form">
+        <label>Nome</label><input name="contactName" required />
+        <label>Email</label><input type="email" name="contactEmail" required />
+        <label>Telefone</label><input name="contactPhone" />
+        <label>Detalhes do trabalho</label><textarea name="details" rows="3" required></textarea>
+        <label>Resultados esperados</label><input name="goals" />
+        <button type="submit">Submeter pedido especial</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="container" id="invoice-area">
+    <div class="card wide">
+      <h3>Gestão de faturas</h3>
+      <p class="muted">Acompanhe todas as faturas em um único painel, com links para visualização dedicada e download em PDF.</p>
+      <div id="invoice-list" class="list"></div>
+    </div>
+  </section>
+
+  <section class="container" id="affiliate-area">
+    <div class="card wide">
+      <h3>Programa de afiliados</h3>
+      <p class="muted">Ganhe 18% em dinheiro por cada trabalho realizado pelos clientes que indicar. Partilhe o seu código abaixo.</p>
+      <div id="affiliate-panel" class="affiliate"></div>
+    </div>
+  </section>
+
+  <section class="container" id="deliveries-area">
+    <div class="card wide">
+      <h3>Documentos enviados pelo admin</h3>
+      <p class="muted">Quando a fatura estiver paga e o pedido concluído, o trabalho final aparece aqui para download.</p>
+      <div id="deliveries-list" class="list"></div>
+    </div>
+  </section>
+
+  <section class="grid-panels">
+    <div>
+      <h3>Segmentos atendidos</h3>
+      <p>Relatórios técnicos, teses, monografias, planos de negócios, artigos científicos e preparação para conferências.</p>
+    </div>
+    <div>
+      <h3>Velocidade + rigor</h3>
+      <p>Equipe especializada por área científica, revisão dupla e entrega controlada por prazos de pagamento.</p>
+    </div>
+    <div>
+      <h3>Garantia total</h3>
+      <p>Histórico completo de estados, faturas e provas com auditoria automática.</p>
+    </div>
+  </section>
+
+  <div id="confirm-overlay" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-body">
+        <h4 id="confirm-title">Confirmar</h4>
+        <p id="confirm-text" class="muted"></p>
+      </div>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="ghost">Cancelar</button>
+        <button id="confirm-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

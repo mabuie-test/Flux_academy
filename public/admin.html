@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel Admin - Flux Academy</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Admin Flux Academy</h1>
+    <div class="navbar">
+      <a href="/">Voltar ao site</a>
+      <button id="admin-logout" class="ghost">Sair</button>
+    </div>
+  </header>
+  <section class="hero">
+    <h2>Centro de controlo completo</h2>
+    <p>Valide pagamentos, acompanhe auditorias, envie notificações e liberte entregas finais com transparência.</p>
+  </section>
+
+  <div class="container">
+    <div class="card">
+      <h3>Login de administrador</h3>
+      <form id="admin-login">
+        <label>Email</label>
+        <input type="email" name="email" required />
+        <label>Password</label>
+        <input type="password" name="password" required />
+        <button type="submit">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <section id="admin-panel" class="container" style="display:none;">
+    <aside class="card sidebar">
+      <h3>Menu</h3>
+      <ul class="nav-list">
+        <li><a href="#orders">Encomendas</a></li>
+        <li><a href="#auditoria">Auditoria</a></li>
+        <li><a href="#services">Pedidos especiais</a></li>
+        <li><a href="#broadcast">Envios em massa</a></li>
+        <li><a href="#users">Utilizadores</a></li>
+        <li><a href="#affiliates">Afiliados</a></li>
+        <li><a href="#charts">Estatísticas</a></li>
+      </ul>
+      <div class="divider"></div>
+      <div class="mini-stats" id="admin-mini-stats"></div>
+    </aside>
+
+    <div class="card" id="orders" style="width:760px;">
+      <div class="card-header">
+        <div>
+          <h3>Encomendas</h3>
+          <p class="muted">Filtros rápidos para acompanhar pagamentos, uploads e entregas.</p>
+        </div>
+        <div class="filters">
+          <select id="filter-status">
+            <option value="all">Todos os estados</option>
+            <option value="PENDENTE_PAGAMENTO">Pendente pagamento</option>
+            <option value="PAGAMENTO_EM_VALIDACAO">Pagamento em validação</option>
+            <option value="EM_EXECUCAO">Em execução</option>
+            <option value="CONCLUIDA">Concluída</option>
+            <option value="CANCELADA">Cancelada</option>
+          </select>
+          <input id="filter-search" type="search" placeholder="Buscar por email, nome, fatura" />
+          <select id="filter-invoice">
+            <option value="all">Todas faturas</option>
+            <option value="EMITIDA">Emitidas</option>
+            <option value="PENDENTE">Pendentes</option>
+            <option value="PENDENTE_VALIDACAO">Em validação</option>
+            <option value="PAGA">Pagas</option>
+          </select>
+        </div>
+      </div>
+      <div id="admin-stats" class="hero-grid"></div>
+      <div id="admin-orders" class="list"></div>
+    </div>
+    <div class="card" style="width:760px;">
+      <h3>Detalhes</h3>
+      <div id="admin-detail"></div>
+    </div>
+    <div class="card" id="auditoria" style="width:760px;">
+      <div class="card-header">
+        <div>
+          <h3>Auditoria e contabilidade</h3>
+          <p class="muted">Registos de login, uploads, validações, IPs e totais financeiros.</p>
+        </div>
+      </div>
+      <div id="audit-cards" class="hero-grid"></div>
+      <div id="audit-feed" class="list"></div>
+    </div>
+    <div class="card" id="services" style="width:760px;">
+      <h3>Pedidos de TCC / Especial</h3>
+      <div id="admin-services" class="list"></div>
+    </div>
+    <div class="card" id="broadcast" style="width:760px;">
+      <h3>Envio de email para todos</h3>
+      <form id="broadcast-form">
+        <label>Assunto</label><input name="subject" required />
+        <label>Mensagem</label><textarea name="message" rows="3" required></textarea>
+        <button type="submit">Enviar emails</button>
+      </form>
+    </div>
+    <div class="card" id="users" style="width:760px;">
+      <h3>Gestão de utilizadores</h3>
+      <div id="user-summary" class="hero-grid"></div>
+      <div id="user-table" class="list"></div>
+    </div>
+    <div class="card" id="affiliates" style="width:760px;">
+      <h3>Programa de afiliados</h3>
+      <div id="affiliate-totals" class="hero-grid"></div>
+      <form id="payout-form" class="mini-form inline">
+        <input type="text" name="userId" placeholder="ID do afiliado" required />
+        <input type="number" name="amount" min="1" step="0.01" placeholder="Montante" required />
+        <input type="text" name="note" placeholder="Nota / referência" />
+        <button type="submit">Registar pagamento</button>
+      </form>
+      <div id="affiliate-list" class="list"></div>
+      <div id="payout-list" class="list"></div>
+    </div>
+    <div class="card" id="charts" style="width:760px;">
+      <h3>Estatísticas</h3>
+      <div class="chart-grid">
+        <canvas id="chart-faturas" height="140"></canvas>
+        <canvas id="chart-receita" height="140"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <div id="confirm-overlay" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-body">
+        <h4 id="confirm-title">Confirmar ação?</h4>
+        <p id="confirm-text" class="muted"></p>
+      </div>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="ghost">Cancelar</button>
+        <button id="confirm-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<?php
+namespace App\Models;
+
+use App\Config\Database;
+use PDO;
+
+class User
+{
+    public static function create(array $data): int
+    {
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare('INSERT INTO users (name, email, password_hash, role, active, referral_code, referred_by) VALUES (:name, :email, :password_hash, :role, 1, :referral_code, :referred_by)');
+        $stmt->execute([
+            ':name' => $data['name'],
+            ':email' => $data['email'],
+            ':password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
+            ':role' => $data['role'] ?? 'cliente',
+            ':referral_code' => $data['referral_code'] ?? bin2hex(random_bytes(4)),
+            ':referred_by' => $data['referred_by'] ?? null,
+        ]);
+        return (int) $pdo->lastInsertId();
+    }
+
+    public static function findByEmail(string $email): ?array
+    {
+        $stmt = Database::pdo()->prepare('SELECT * FROM users WHERE email = :email LIMIT 1');
+        $stmt->execute([':email' => $email]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public static function findById(int $id): ?array
+    {
+        $stmt = Database::pdo()->prepare('SELECT * FROM users WHERE id = :id');
+        $stmt->execute([':id' => $id]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+}
