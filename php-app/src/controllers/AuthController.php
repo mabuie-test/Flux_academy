@@ -9,9 +9,8 @@ use App\Config\Config;
 
 class AuthController
 {
-    public static function register(): void
+    private static function performRegister(array $data): void
     {
-        $data = json_decode(file_get_contents('php://input'), true) ?? [];
         if (!isset($data['name'], $data['email'], $data['password'])) {
             Response::json(['message' => 'Dados incompletos'], 400);
             return;
@@ -20,11 +19,25 @@ class AuthController
             Response::json(['message' => 'Email já registado'], 400);
             return;
         }
-        $userId = User::create($data);
+        $role = in_array($data['role'] ?? 'cliente', ['cliente', 'admin'], true) ? $data['role'] : 'cliente';
+        $userId = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role' => $role,
+            'referral_code' => $data['referral_code'] ?? null,
+            'referred_by' => $data['referred_by'] ?? null,
+        ]);
         $user = User::findById($userId);
         $token = Auth::issueToken($user);
-        AuditHelper::log($userId, 'signup', ['email' => $user['email']]);
+        AuditHelper::log($userId, 'signup', ['email' => $user['email'], 'role' => $role]);
         Response::json(['token' => $token, 'user' => $user], 201);
+    }
+
+    public static function register(): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        self::performRegister($data);
     }
 
     public static function login(): void
@@ -49,6 +62,6 @@ class AuthController
             return;
         }
         $data['role'] = 'admin';
-        self::register();
+        self::performRegister($data);
     }
 }

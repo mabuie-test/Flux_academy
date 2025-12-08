@@ -26,4 +26,12 @@ class Invoice
         $stmt = Database::pdo()->prepare('UPDATE invoices SET estado = :estado WHERE id = :id');
         $stmt->execute([':estado' => $estado, ':id' => $id]);
     }
+
+    public static function findById(int $id): ?array
+    {
+        $stmt = Database::pdo()->prepare('SELECT * FROM invoices WHERE id = :id LIMIT 1');
+        $stmt->execute([':id' => $id]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
 }

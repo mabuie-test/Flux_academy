@@ -102,7 +102,10 @@
           <label>Enviar materiais (pdf, imagens, docx) - pode selecionar vários</label>
           <input type="file" name="materials" multiple />
         </div>
-      <button type="submit">Calcular e Encomendar</button>
+      <div class="inline-group">
+        <button type="button" id="simulate-quote" class="ghost">Simular preço</button>
+        <button type="submit">Calcular e Encomendar</button>
+      </div>
     </form>
     <div id="quote-preview" class="quote"></div>
   </div>

@@ -4,14 +4,43 @@ require __DIR__ . '/../vendor/autoload.php';
 use App\Config\Config;
 use App\Config\Database;
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit;
-}
-
 Config::load(dirname(__DIR__));
 Database::pdo();
 
-require __DIR__ . '/../src/routes/api.php';
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+// API handling
+if (str_starts_with($uri, '/api/')) {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    if ($method === 'OPTIONS') {
+        exit;
+    }
+    require __DIR__ . '/../src/routes/api.php';
+    exit;
+}
+
+$publicRoot = realpath(__DIR__);
+$target = $uri === '/' ? $publicRoot . '/index.html' : realpath($publicRoot . $uri);
+
+if ($target && is_file($target) && str_starts_with($target, $publicRoot)) {
+    $extension = strtolower(pathinfo($target, PATHINFO_EXTENSION));
+    $mime = match ($extension) {
+        'html' => 'text/html; charset=utf-8',
+        'css' => 'text/css; charset=utf-8',
+        'js' => 'application/javascript; charset=utf-8',
+        'png' => 'image/png',
+        'jpg', 'jpeg' => 'image/jpeg',
+        'svg' => 'image/svg+xml',
+        'pdf' => 'application/pdf',
+        default => 'application/octet-stream',
+    };
+    header('Content-Type: ' . $mime);
+    readfile($target);
+    return;
+}
+
+http_response_code(404);
+echo 'Not found';

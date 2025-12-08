@@ -1,36 +1,35 @@
-# Instruções para registar um administrador via API REST
+# Instruções para registar um administrador via API REST (PHP)
 
-1) Obter ou definir o token de configuração (opcional)
-- Se quiser proteger o registo de administradores, defina a variável de ambiente ADMIN_SETUP_TOKEN no servidor.
-- Quando a variável existir, o cabeçalho `x-admin-setup-token` deve conter o mesmo valor na chamada de registo.
+1) Definir o token de configuração (opcional)
+- Se quiser proteger o registo de administradores, defina a variável ADMIN_SETUP_TOKEN no ficheiro `.env`.
+- Quando a variável existir, envie o campo JSON `setupToken` com o mesmo valor.
 
 2) Endpoint
 - Método: POST
-- URL: /api/auth/admin/signup
+- URL: /api/auth/admin-register
 
 3) Cabeçalhos
 - Content-Type: application/json
-- x-admin-setup-token: <valor_de_ADMIN_SETUP_TOKEN> (somente se a variável estiver configurada)
 
 4) Corpo JSON de exemplo
 {
   "name": "Admin Principal",
   "email": "admin@exemplo.com",
-  "password": "palavra-passe-segura"
+  "password": "palavra-passe-segura",
+  "setupToken": "<valor_de_ADMIN_SETUP_TOKEN>"
 }
 
 5) Resposta esperada
-- 200 OK com o token JWT e os dados básicos do utilizador admin:
+- 201 Created com o token JWT e os dados do utilizador admin:
   {
     "token": "...",
     "user": { "id": "...", "name": "Admin Principal", "email": "admin@exemplo.com", "role": "admin" }
   }
 
 6) Teste rápido com curl
-curl -X POST https://<seu-dominio>/api/auth/admin/signup \
+curl -X POST https://<seu-dominio>/api/auth/admin-register \
   -H "Content-Type: application/json" \
-  -H "x-admin-setup-token: <token_se_definido>" \
-  -d '{"name":"Admin Principal","email":"admin@exemplo.com","password":"minhaSenhaSegura"}'
+  -d '{"name":"Admin Principal","email":"admin@exemplo.com","password":"minhaSenhaSegura","setupToken":"<token>"}'
 
 7) Após criar o admin
 - Faça login com o mesmo email e password em /login.html para aceder ao painel de administração.

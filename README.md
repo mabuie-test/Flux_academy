@@ -1,88 +1,56 @@
-# Flux Academy
+# Flux Academy (PHP/MySQL)
 
-Plataforma Node.js + MongoDB para encomenda de trabalhos académicos com cálculo automático de preço, faturação com dados de pagamento M-Pesa e validação manual de comprovativos.
+Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo automático de preço, emissão de faturas com dados M-Pesa e painel administrativo.
 
 ## Requisitos
-- Node.js 18+
-- MongoDB Atlas (string de ligação)
+- PHP 8.1 ou superior (CLI/servidor)
+- Composer
+- MySQL 8+
 
-## Configuração
-1. Copie `.env.example` para `.env` e defina as variáveis:
-```
-PORT=4000
-MONGODB_URI=sua_string_atlas
-JWT_SECRET=chave_segura
-SMTP_HOST=
-SMTP_PORT=587
-SMTP_USER=
-SMTP_PASS=
-SMTP_FROM="Flux Academy <no-reply@flux.academy>"
-ADMIN_SETUP_TOKEN=
-```
-2. Instale dependências:
-```
-npm install
-```
-3. Inicie em desenvolvimento:
-```
-npm run dev
-```
-Ou produção:
-```
-npm start
-```
-
-## Estrutura
-- `src/server.js` – servidor Express e ligação MongoDB.
-- `src/models` – esquemas User, Order e Invoice.
-- `src/controllers` – lógica de autenticação, encomendas e painel admin.
-- `src/routes` – rotas de API para auth, cliente e admin.
-- `src/utils/pricing.js` – cálculo reutilizável do preço total.
-- Preço base atual: 35 MZN por página (ajustável em `src/utils/pricing.js`).
-- `public/` – frontend HTML/CSS/JS simples para cliente e admin.
-- `uploads/` – comprovativos e trabalhos finais enviados via multer.
-- Materiais didáticos fornecidos pelo cliente (percentagem e múltiplos ficheiros) ficam registados na encomenda e acessíveis ao admin.
-- `/api/orders/quote` – endpoint para simular preços em tempo real.
-- Uploads protegidos com limites (5MB comprovativos, 15MB trabalhos finais) e formatos validados (pdf/jpg/png para comprovativos; pdf/doc/docx para trabalhos).
-- Emails automáticos cobrem criação/alteração de faturas, recuperação de senha por token, entrega final, pedidos especiais e disparo em massa pelo admin.
-- Termos e Condições disponíveis em `/terms.html`; aceitação obrigatória nos formulários de login/registo.
-- Pedidos especiais de TCC e projetos práticos com faturação manual e trilha de auditoria.
-- Página dedicada de faturas com link de download em PDF e atalhos rápidos a partir do painel do cliente.
-- Página extra `/documents.html` para visualizar todas as faturas em nova aba e descarregar documentos finais enviados pelo admin.
-- Programa de afiliados: código único por utilizador, 18% de comissão por pedidos pagos de clientes indicados (campo opcional no formulário e resumo em `/` > “Programa de afiliados”).
-- Levantamentos de afiliados: clientes pedem pagamentos, admin aprova/paga (modelo `AffiliatePayout`) e vê totais pagos/pedentes no painel.
-- Painel admin reforçado: gestão de utilizadores (ativar/desativar/alterar role), gráficos de faturas/receita e secção dedicada de afiliação.
-- Feedback pós-entrega: clientes classificam o trabalho e registam a nota obtida em `/documents.html`, com thread de respostas visível e respondida pelo admin.
-- Registo de administradores via `/api/auth/admin/signup` (opcionalmente protegido pelo cabeçalho `x-admin-setup-token` com o valor de `ADMIN_SETUP_TOKEN`). Consulte `registo.txt` para instruções passo-a-passo.
-
-## Fluxo principal
-1. Cliente regista/login.
-2. Cria encomenda -> preço calculado e fatura gerada com dados M-Pesa (Número 851619970, Titular Maria António Chicavele).
-3. Cliente envia comprovativo -> estados passam para validação.
-4. Admin valida ou rejeita pagamento (com histórico de motivos); após validado, pode subir o ficheiro final.
-5. Cliente descarrega o trabalho final apenas quando encomenda está `CONCLUIDA` e fatura `PAGA`.
-6. Prazos expirados podem marcar faturas como `EXPIRADA` e encomendas como `CANCELADA`.
-
-## Nova implementação PHP + MySQL
-Para uma versão em PHP com MySQL e emails via PHPMailer, use o diretório `php-app/`:
-
-1. Instale dependências com Composer (requer PHP 8.1+):
+## Configuração rápida
+1. Copie o ficheiro de exemplo:
+   ```bash
+   cp php-app/.env.example php-app/.env
+   ```
+2. Edite `php-app/.env` com as credenciais MySQL, dados SMTP (PHPMailer) e, se quiser restringir o registo de administradores, defina `ADMIN_SETUP_TOKEN`.
+3. Instale dependências PHP:
    ```bash
    cd php-app
    composer install
-   cp .env.example .env
    ```
-2. Ajuste `.env` com credenciais MySQL, SMTP e `ADMIN_SETUP_TOKEN` para controlar o registo de administradores.
-3. Crie a base de dados e execute `schema.sql` no MySQL para criar as tabelas necessárias.
-4. Arranque o servidor embutido do PHP para testes locais:
+4. Crie a base de dados e aplique o esquema:
+   ```bash
+   mysql -u <user> -p < db_password
+   source schema.sql;
+   ```
+5. Arranque localmente para desenvolvimento:
    ```bash
    php -S localhost:8080 -t public
    ```
-5. Endpoints principais (REST):
-   - `POST /api/auth/register` — registo de cliente
-   - `POST /api/auth/login` — login
-   - `POST /api/auth/admin-register` — registo de admin (requer `setupToken` igual ao `ADMIN_SETUP_TOKEN` se definido)
-   - `POST /api/orders` — criação de encomenda; calcula preço (base 35 MZN/página) e emite fatura
-   - `POST /api/admin/invoices/approve` — validação de pagamento (admin)
+6. Aponte o webroot do seu hosting PHP para `php-app/public/`. As páginas HTML e a API REST vivem no mesmo directório; tudo sem Node.js.
 
-A API reutiliza a mesma lógica de preços (35 MZN por página com multiplicadores), guarda auditorias e dispara emails automáticos nas emissões e aprovações de fatura.
+## API principal (todas em `/api`)
+- `POST /api/auth/register` — registo de cliente (JSON: name, email, password, opcional referred_by)
+- `POST /api/auth/login` — autenticação (JSON: email, password)
+- `POST /api/auth/admin-register` — registo de administrador (JSON: name, email, password, setupToken)
+- `POST /api/orders/quote` — cálculo de preço (JSON: paginas, nivel, complexidade, urgencia)
+- `POST /api/orders` — criação de encomenda + fatura (form-data; requer Bearer token)
+- `GET  /api/orders` — listar encomendas do cliente autenticado
+- `GET  /api/orders/{id}` — detalhe de encomenda (cliente dono ou admin)
+- `GET  /api/admin/orders` — lista completa para administradores
+- `POST /api/admin/invoices/approve` — marcar fatura como paga (admin)
+
+Autenticação: envie `Authorization: Bearer <token>` devolvido no login/registo.
+
+Preço base actual: **35 MZN** por página (configurável via `BASE_PRICE_PER_PAGE` no `.env`). Multiplicadores seguem o helper `php-app/src/helpers/pricing.php`.
+
+## Estrutura
+- `php-app/public/` — páginas HTML/JS/CSS e front controller `index.php` que serve a API e os assets estáticos.
+- `php-app/src/` — configuração, controladores, modelos, helpers (JWT, auditoria, mailer, pricing).
+- `php-app/schema.sql` — tabelas MySQL (users, orders, invoices, audits, afiliados/payouts, etc.).
+- `registo.txt` — guia rápido de registo de administradores via API.
+
+## Notas
+- Node.js foi removido; todo o backend e frontend são servidos em PHP para funcionar em ambientes de alojamento apenas-PHP.
+- Emails usam PHPMailer; configure host, utilizador e remetente no `.env`.
+- A aplicação serve as páginas estáticas e a API do mesmo `index.php`; mantenha o webroot em `php-app/public/`.

@@ -6,11 +6,11 @@ function toggleNav() {
   document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
   const logout = document.getElementById('logout');
   if (logout) {
-    logout.addEventListener('click', () => {
+    logout.onclick = () => {
       authToken = '';
       localStorage.removeItem('token');
       toggleNav();
-    });
+    };
   }
 }
 
@@ -27,11 +27,8 @@ const signupForm = document.getElementById('signup-form');
 if (signupForm) {
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!signupForm.querySelector('input[name="terms"]')?.checked) {
-      return alert('É necessário aceitar os Termos e Condições.');
-    }
     const payload = Object.fromEntries(new FormData(signupForm).entries());
-    const res = await fetch(`${apiBase}/auth/signup`, {
+    const res = await fetch(`${apiBase}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -49,11 +46,8 @@ const signinForm = document.getElementById('signin-form');
 if (signinForm) {
   signinForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!signinForm.querySelector('input[name="terms"]')?.checked) {
-      return alert('É necessário aceitar os Termos e Condições.');
-    }
     const payload = Object.fromEntries(new FormData(signinForm).entries());
-    const res = await fetch(`${apiBase}/auth/signin`, {
+    const res = await fetch(`${apiBase}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -67,38 +61,8 @@ if (signinForm) {
   });
 }
 
-const forgotForm = document.getElementById('forgot-form');
-if (forgotForm) {
-  forgotForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const payload = Object.fromEntries(new FormData(forgotForm).entries());
-    const res = await fetch(`${apiBase}/auth/forgot`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    alert(data.message || (res.ok ? 'Token enviado' : 'Erro ao enviar token'));
-  });
-}
-
-const resetForm = document.getElementById('reset-form');
-if (resetForm) {
-  resetForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const payload = Object.fromEntries(new FormData(resetForm).entries());
-    const res = await fetch(`${apiBase}/auth/reset`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    alert(data.message || (res.ok ? 'Senha atualizada' : 'Erro ao atualizar senha'));
-  });
-}
-
 toggleNav();
 
-if (authToken) {
+if (authToken && window.location.pathname !== '/') {
   window.location.href = '/';
 }

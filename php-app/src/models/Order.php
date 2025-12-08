@@ -32,4 +32,28 @@ class Order
         $stmt = Database::pdo()->prepare('UPDATE orders SET invoice_id = :invoice_id WHERE id = :id');
         $stmt->execute([':invoice_id' => $invoiceId, ':id' => $orderId]);
     }
+
+    public static function listForUser(int $userId): array
+    {
+        $sql = 'SELECT o.*, i.numero as invoice_numero, i.estado as invoice_estado, i.valor_total, i.id as invoice_id FROM orders o LEFT JOIN invoices i ON i.id = o.invoice_id WHERE o.user_id = :uid ORDER BY o.id DESC';
+        $stmt = Database::pdo()->prepare($sql);
+        $stmt->execute([':uid' => $userId]);
+        return $stmt->fetchAll();
+    }
+
+    public static function findWithInvoice(int $orderId): ?array
+    {
+        $sql = 'SELECT o.*, i.numero as invoice_numero, i.estado as invoice_estado, i.valor_total, i.id as invoice_id, i.vencimento, i.comprovativo FROM orders o LEFT JOIN invoices i ON i.id = o.invoice_id WHERE o.id = :id LIMIT 1';
+        $stmt = Database::pdo()->prepare($sql);
+        $stmt->execute([':id' => $orderId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public static function listAllWithInvoices(): array
+    {
+        $sql = 'SELECT o.*, u.name as user_name, u.email as user_email, i.numero as invoice_numero, i.estado as invoice_estado, i.valor_total, i.id as invoice_id FROM orders o LEFT JOIN invoices i ON i.id = o.invoice_id LEFT JOIN users u ON u.id = o.user_id ORDER BY o.id DESC';
+        $stmt = Database::pdo()->query($sql);
+        return $stmt->fetchAll();
+    }
 }
