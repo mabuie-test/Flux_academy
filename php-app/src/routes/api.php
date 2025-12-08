@@ -43,6 +43,10 @@ if ($uri === '/api/services' && $method === 'POST') {
     ServiceController::create();
     return;
 }
+if ($uri === '/api/services' && $method === 'GET') {
+    ServiceController::listMine();
+    return;
+}
 if ($uri === '/api/orders/proof' && $method === 'POST') {
     OrderController::uploadProof();
     return;

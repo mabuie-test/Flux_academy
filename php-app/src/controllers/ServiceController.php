@@ -65,6 +65,13 @@ class ServiceController
         Response::json(['services' => $requests]);
     }
 
+    public static function listMine(): void
+    {
+        $user = Auth::requireUser();
+        $requests = ServiceRequest::listForUser($user['id']);
+        Response::json(['services' => $requests]);
+    }
+
     public static function updateStatus(): void
     {
         $admin = Auth::requireAdmin();
@@ -75,6 +82,16 @@ class ServiceController
             return;
         }
         ServiceRequest::updateStatus($id, $status);
+        $service = ServiceRequest::find($id);
+        if ($service) {
+            $targetEmail = $service['contact_email'] ?? null;
+            if ($targetEmail) {
+                Mailer::send($targetEmail, 'Atualização do seu serviço', 'O pedido #' . $id . ' agora está em: ' . $status);
+            }
+            if (!empty($service['user_id'])) {
+                AuditHelper::log((int) $service['user_id'], 'service:update', ['service_id' => $id, 'status' => $status]);
+            }
+        }
         AuditHelper::log($admin['id'], 'service:update', ['service_id' => $id, 'status' => $status]);
         Response::json(['message' => 'Estado atualizado']);
     }

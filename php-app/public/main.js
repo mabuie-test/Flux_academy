@@ -272,10 +272,50 @@ if (serviceForm) {
       if (!res.ok) throw new Error(data.message || 'Erro ao registar serviço');
       showToast('Pedido especializado enviado.');
       serviceForm.reset();
+      loadMyServices();
     } catch (err) {
       showToast(err.message);
     }
   });
+}
+
+async function loadMyServices() {
+  const container = document.getElementById('service-list');
+  if (!container) return;
+  if (!authToken) {
+    container.innerHTML = '<p class="muted">Inicie sessão para acompanhar os pedidos.</p>';
+    return;
+  }
+  try {
+    const res = await fetch(`${apiBase}/services`, { headers: { Authorization: `Bearer ${authToken}` } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Erro ao carregar serviços');
+    if (!data.services || !data.services.length) {
+      container.innerHTML = '<p class="muted">Ainda sem pedidos especializados.</p>';
+      return;
+    }
+    container.innerHTML = '';
+    data.services.forEach((svc) => {
+      const row = document.createElement('div');
+      row.className = 'list-row';
+      row.innerHTML = `
+        <div>
+          <strong>${svc.categoria}</strong>
+          <p class="muted">${svc.detalhes || ''}</p>
+          ${svc.attachment ? `<a href="${svc.attachment}" target="_blank">Ver anexo</a>` : ''}
+        </div>
+        <div class="badge">${svc.status}</div>
+      `;
+      container.appendChild(row);
+    });
+  } catch (err) {
+    container.innerHTML = `<p class="muted">${err.message}</p>`;
+  }
+}
+
+if (document.getElementById('service-list')) {
+  loadMyServices();
+  setInterval(loadMyServices, 20000);
 }
 
 document.querySelectorAll('[data-service-type]').forEach((btn) => {

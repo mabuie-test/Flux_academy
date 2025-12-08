@@ -42,6 +42,7 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 - `GET  /api/affiliates/summary` — comissões, saldo e pedidos de levantamento do afiliado
 - `POST /api/affiliates/request-payout` — solicitar levantamento do saldo aprovado
 - `POST /api/services` — pedidos de serviços especializados (revisão, estatística, apresentações, CV, plágio)
+- `GET  /api/services` — listar os serviços especializados do cliente autenticado
 - `GET  /api/orders` — listar encomendas do cliente autenticado
 - `GET  /api/orders/{id}` — detalhe de encomenda (cliente dono ou admin)
 - `GET  /api/admin/orders` — lista completa para administradores
@@ -90,6 +91,6 @@ Preço base actual: **35 MZN** por página (configurável via `BASE_PRICE_PER_PA
 
 ## Notas
 - Node.js foi removido; todo o backend e frontend são servidos em PHP para funcionar em ambientes de alojamento apenas-PHP.
-- Emails usam PHPMailer; configure host, utilizador e remetente no `.env`.
+- Emails usam PHPMailer; configure host, utilizador e remetente no `.env`. Clientes recebem notificações automáticas sobre faturas, comprovativos, entregas, pedidos de serviços e mudanças de estado; administradores recebem alertas sobre novos pedidos e provas submetidas.
 - A aplicação serve as páginas estáticas e a API do mesmo `index.php`; mantenha o webroot em `php-app/public/`.
 - Contactos destacados no frontend: +258 851 619 970 (Chamadas/WhatsApp), suporte@fluxosoftwares.com e links sociais; copyright © 2024 Fluxosoftwares.

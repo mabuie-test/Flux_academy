@@ -31,6 +31,23 @@ class ServiceRequest
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public static function listForUser(int $userId): array
+    {
+        $db = Database::getInstance();
+        $stmt = $db->prepare('SELECT * FROM service_requests WHERE user_id = :user ORDER BY created_at DESC');
+        $stmt->execute([':user' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function find(int $id): ?array
+    {
+        $db = Database::getInstance();
+        $stmt = $db->prepare('SELECT sr.*, u.email AS user_email FROM service_requests sr LEFT JOIN users u ON sr.user_id = u.id WHERE sr.id = :id');
+        $stmt->execute([':id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
     public static function updateStatus(int $id, string $status): void
     {
         $db = Database::getInstance();
