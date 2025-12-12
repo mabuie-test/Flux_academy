@@ -75,6 +75,10 @@ if (preg_match('#^/api/orders/(\d+)$#', $uri, $matches) && $method === 'GET') {
     OrderController::show((int) $matches[1]);
     return;
 }
+if (preg_match('#^/api/orders/(\d+)/pdf$#', $uri, $matches) && $method === 'GET') {
+    OrderController::invoicePdf((int) $matches[1]);
+    return;
+}
 if ($uri === '/api/admin/orders' && $method === 'GET') {
     AdminController::listOrders();
     return;

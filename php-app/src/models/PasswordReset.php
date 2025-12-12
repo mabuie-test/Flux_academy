@@ -6,7 +6,7 @@ use PDO;
 
 class PasswordReset
 {
-    public static function create(string $email, string $token, string $code, string $expiresAt): void
+    public static function create(string $email, ?string $token, string $code, string $expiresAt): void
     {
         $stmt = Database::pdo()->prepare('INSERT INTO password_resets (email, token, code, expires_at) VALUES (:email, :token, :code, :expires_at)');
         $stmt->execute([
@@ -17,12 +17,11 @@ class PasswordReset
         ]);
     }
 
-    public static function findValid(string $email, string $token, string $code): ?array
+    public static function findValid(string $email, string $code): ?array
     {
-        $stmt = Database::pdo()->prepare('SELECT * FROM password_resets WHERE email = :email AND token = :token AND code = :code AND used = 0 AND expires_at > NOW() ORDER BY id DESC LIMIT 1');
+        $stmt = Database::pdo()->prepare('SELECT * FROM password_resets WHERE email = :email AND code = :code AND used = 0 AND expires_at > NOW() ORDER BY id DESC LIMIT 1');
         $stmt->execute([
             ':email' => $email,
-            ':token' => $token,
             ':code' => $code,
         ]);
         $row = $stmt->fetch();

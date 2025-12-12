@@ -282,6 +282,7 @@ async function loadPayouts() {
       <div>
         <strong>Pedido #${p.id}</strong>
         <p class="muted">${p.name || p.email} · ${p.valor} MZN · ${p.metodo}</p>
+        <p class="muted">M-Pesa: ${p.mpesa_destino || '—'}</p>
       </div>
       <div class="stacked-actions">
         <button class="ghost" data-id="${p.id}" data-status="APROVADO">Aprovar</button>

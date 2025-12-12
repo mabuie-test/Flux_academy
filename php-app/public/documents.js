@@ -38,10 +38,23 @@ async function loadInvoices() {
       </div>
       <div class="stacked-actions">
         <a class="ghost" href="/invoice.html?id=${order.id}" target="_blank">Abrir</a>
+        <button class="ghost" data-invoice="${order.id}">Baixar PDF</button>
       </div>
     `;
+    item.querySelector('button')?.addEventListener('click', () => downloadInvoice(order.id));
     list.appendChild(item);
   });
+}
+
+async function downloadInvoice(orderId) {
+  const res = await fetch(`${apiBase}/orders/${orderId}/pdf`, { headers: { Authorization: `Bearer ${authToken}` } });
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fatura-${orderId}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 async function loadDocuments() {
@@ -149,4 +162,9 @@ if (document.getElementById('invoice-collection')) {
     loadFeedback();
   });
   document.getElementById('refresh-feedback')?.addEventListener('click', loadFeedback);
+  setInterval(() => {
+    loadInvoices();
+    loadDocuments();
+    loadFeedback();
+  }, 12000);
 }

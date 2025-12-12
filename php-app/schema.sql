@@ -63,6 +63,7 @@ CREATE TABLE affiliate_payouts (
   user_id INT NOT NULL,
   valor DECIMAL(10,2) NOT NULL,
   metodo VARCHAR(50) DEFAULT 'mpesa',
+  mpesa_destino VARCHAR(50) NULL,
   status VARCHAR(50) DEFAULT 'PENDENTE',
   notes TEXT,
   processed_by INT NULL,

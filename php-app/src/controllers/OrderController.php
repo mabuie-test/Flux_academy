@@ -200,17 +200,18 @@ class OrderController
         $body = json_decode(file_get_contents('php://input'), true) ?? [];
         $metodo = $body['metodo'] ?? 'mpesa';
         $notes = $body['notes'] ?? null;
+        $mpesa = $body['mpesa'] ?? null;
         $available = AffiliateCommission::totalAvailableForCode($code);
         if ($available <= 0) {
             Response::json(['message' => 'Sem saldo disponível para levantamento'], 400);
             return;
         }
-        $payoutId = AffiliatePayout::create($user['id'], $available, 'SOLICITADO', $metodo, $notes);
+        $payoutId = AffiliatePayout::create($user['id'], $available, 'SOLICITADO', $metodo, $notes, $mpesa);
         AuditHelper::log($user['id'], 'affiliate:payout', ['payout_id' => $payoutId, 'valor' => $available]);
         Mailer::send($user['email'], 'Pedido de levantamento recebido', 'Solicitação #' . $payoutId . ' no valor de ' . $available . ' MZN.');
         $adminEmail = Config::get('ADMIN_NOTIFY_EMAIL');
         if ($adminEmail) {
-            Mailer::send($adminEmail, 'Novo levantamento de afiliado', 'O afiliado ' . $user['email'] . ' solicitou ' . $available . ' MZN.');
+            Mailer::send($adminEmail, 'Novo levantamento de afiliado', 'O afiliado ' . $user['email'] . ' solicitou ' . $available . ' MZN para ' . ($mpesa ?: 'conta não informada'));
         }
         Response::json(['message' => 'Pedido registado', 'payout_id' => $payoutId]);
     }
@@ -243,5 +244,27 @@ class OrderController
         }
         $feedback = Feedback::listForOrder($orderId);
         Response::json(['order' => $order, 'feedback' => $feedback]);
+    }
+
+    public static function invoicePdf(int $orderId): void
+    {
+        $user = Auth::requireUser();
+        $order = Order::findWithInvoice($orderId);
+        if (!$order) {
+            http_response_code(404);
+            echo 'Fatura não encontrada';
+            return;
+        }
+        if ($order['user_id'] !== $user['id'] && $user['role'] !== 'admin') {
+            http_response_code(403);
+            echo 'Acesso negado';
+            return;
+        }
+        $numero = $order['invoice_numero'] ?? ('FAT-' . $orderId);
+        $nome = 'fatura-' . $numero . '.pdf';
+        $html = "<h1>Fatura {$numero}</h1><p>Cliente: " . htmlspecialchars($user['name'] ?? $user['email']) . "</p><p>Trabalho: " . htmlspecialchars($order['tipo']) . "</p><p>Área: " . htmlspecialchars($order['area']) . "</p><p>Valor: " . ($order['valor_total'] ?? $order['total'] ?? '—') . " MZN</p><p>Estado: " . ($order['invoice_estado'] ?? 'EMITIDA') . "</p><p>Pagamento M-Pesa: 851619970 · Maria António Chicavele</p><p>Gerado em " . date('Y-m-d H:i') . "</p>";
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="' . $nome . '"');
+        echo $html;
     }
 }

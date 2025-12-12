@@ -1,4 +1,4 @@
-# Flux Academy (PHP/MySQL)
+# Livre-se das Tarefas (PHP/MySQL)
 
 Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo automático de preço, emissão de faturas com dados M-Pesa e painel administrativo.
 

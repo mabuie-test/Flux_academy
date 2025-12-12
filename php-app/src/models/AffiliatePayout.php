@@ -5,10 +5,10 @@ use App\Config\Database;
 
 class AffiliatePayout
 {
-    public static function create(int $userId, float $valor, string $status = 'PENDENTE', string $metodo = 'mpesa', ?string $notes = null): int
+    public static function create(int $userId, float $valor, string $status = 'PENDENTE', string $metodo = 'mpesa', ?string $notes = null, ?string $mpesa = null): int
     {
-        $stmt = Database::pdo()->prepare('INSERT INTO affiliate_payouts (user_id, valor, metodo, status, notes) VALUES (:user_id, :valor, :metodo, :status, :notes)');
-        $stmt->execute([':user_id' => $userId, ':valor' => $valor, ':metodo' => $metodo, ':status' => $status, ':notes' => $notes]);
+        $stmt = Database::pdo()->prepare('INSERT INTO affiliate_payouts (user_id, valor, metodo, status, notes, mpesa_destino) VALUES (:user_id, :valor, :metodo, :status, :notes, :mpesa)');
+        $stmt->execute([':user_id' => $userId, ':valor' => $valor, ':metodo' => $metodo, ':status' => $status, ':notes' => $notes, ':mpesa' => $mpesa]);
         return (int) Database::pdo()->lastInsertId();
     }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Recuperar acesso - Flux Academy</title>
+  <title>Recuperar acesso - Livre-se das Tarefas</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body class="auth-page">
@@ -28,10 +28,8 @@
       <form id="reset-form">
         <label>Email</label>
         <input type="email" name="email" required />
-        <label>Código recebido</label>
-        <input type="text" name="code" required />
-        <label>Token (já vem no link)</label>
-        <input type="text" name="token" required />
+        <label>Código recebido (6 dígitos)</label>
+        <input type="text" name="code" maxlength="6" required />
         <label>Nova palavra-passe</label>
         <input type="password" name="new_password" required />
         <button type="submit">Atualizar palavra-passe</button>
@@ -39,7 +37,7 @@
     </div>
   </main>
   <footer class="footer">
-    <p class="muted">Usamos códigos de 6 dígitos válidos por 60 minutos. Se não pediu este código, ignore o email.</p>
+    <p class="muted">Usamos códigos de 6 dígitos válidos por 10 minutos. Se não pediu este código, ignore o email.</p>
   </footer>
   <script src="/auth.js"></script>
 </body>

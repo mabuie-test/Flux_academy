@@ -56,7 +56,19 @@ if (refreshBtn) refreshBtn.onclick = loadInvoice;
 const backBtn = document.getElementById('back-dashboard');
 if (backBtn) backBtn.onclick = () => (window.location.href = '/documents.html');
 const pdfBtn = document.getElementById('download-pdf');
-if (pdfBtn) pdfBtn.onclick = () => window.open(`/invoice.html?id=${orderId}`, '_blank');
+if (pdfBtn) {
+  pdfBtn.onclick = async () => {
+    if (!requireAuth()) return;
+    const res = await fetch(`${apiBase}/orders/${orderId}/pdf`, { headers: { Authorization: `Bearer ${authToken}` } });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fatura-${orderId}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+}
 
 const proofForm = document.getElementById('proof-form');
 if (proofForm) {

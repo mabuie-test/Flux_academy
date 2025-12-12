@@ -188,7 +188,7 @@ async function loadOrders() {
 
 if (document.getElementById('orders-list')) {
   loadOrders();
-  setInterval(loadOrders, 20000);
+  setInterval(loadOrders, 8000);
 }
 
 async function loadNotifications() {
@@ -240,6 +240,12 @@ async function loadAffiliate() {
           <div><p class="muted">Liberado</p><h4>${data.totals.approved} MZN</h4></div>
           <div><p class="muted">Pago</p><h4>${data.totals.paid} MZN</h4></div>
         </div>
+      <div class="stacked">
+        <label>Número M-Pesa para receber</label>
+        <input type="text" id="payout-mpesa" placeholder="84/85xxxxxxx" />
+        <label>Observações (opcional)</label>
+        <input type="text" id="payout-notes" placeholder="Ex: preferir transferência" />
+      </div>
       <button class="primary" id="request-payout">Pedir levantamento</button>
       <h4>Comissões recentes</h4>
       <div class="list">${commissions.map((c) => `<div class="list-item"><div>#${c.order_id} · ${c.amount} MZN</div><span class="badge">${c.status}</span></div>`).join('') || '<p class="muted">Sem comissões ainda</p>'}</div>
@@ -266,7 +272,10 @@ async function requestPayout() {
     const res = await fetch(`${apiBase}/affiliates/request-payout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-      body: JSON.stringify({ notes: 'Levantamento solicitado via painel' }),
+      body: JSON.stringify({
+        notes: document.getElementById('payout-notes')?.value || 'Levantamento solicitado via painel',
+        mpesa: document.getElementById('payout-mpesa')?.value || null,
+      }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Não foi possível registar o pedido');

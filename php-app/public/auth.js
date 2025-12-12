@@ -122,7 +122,7 @@ const resetForm = document.getElementById('reset-form');
 if (resetForm) {
   const params = new URLSearchParams(window.location.search);
   if (params.get('email')) resetForm.email.value = params.get('email');
-  if (params.get('token')) resetForm.token.value = params.get('token');
+  if (params.get('code')) resetForm.code.value = params.get('code');
   resetForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const payload = Object.fromEntries(new FormData(resetForm).entries());

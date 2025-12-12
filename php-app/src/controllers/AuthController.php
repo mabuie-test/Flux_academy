@@ -77,18 +77,18 @@ class AuthController
             Response::json(['message' => 'Conta não encontrada'], 404);
             return;
         }
-        $token = bin2hex(random_bytes(16));
+        $token = bin2hex(random_bytes(8));
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $expires = date('Y-m-d H:i:s', time() + 3600);
+        $expires = date('Y-m-d H:i:s', time() + 600);
         PasswordReset::create($email, $token, $code, $expires);
         $appUrl = rtrim(Config::get('APP_URL', ''), '/');
-        $link = $appUrl ? $appUrl . "/reset.html?token={$token}&email=" . urlencode($email) : '';
+        $link = $appUrl ? $appUrl . "/reset.html?code={$code}&email=" . urlencode($email) : '';
         $body = "<p>Olá,</p><p>Recebemos um pedido para redefinir a sua palavra-passe.</p><p>Código: <strong>{$code}</strong></p>";
         if ($link) {
             $body .= "<p>Pode também clicar neste link: <a href='{$link}'>Redefinir palavra-passe</a></p>";
         }
-        $body .= '<p>O código expira em 60 minutos.</p>';
-        Mailer::send($email, 'Recuperar acesso - Flux Academy', $body);
+        $body .= '<p>O código expira em 10 minutos.</p>';
+        Mailer::send($email, 'Recuperar acesso - Livre-se das Tarefas', $body);
         AuditHelper::log($user['id'], 'password_reset_request', ['email' => $email]);
         Response::json(['message' => 'Código enviado para o email.']);
     }
@@ -97,14 +97,13 @@ class AuthController
     {
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
         $email = $data['email'] ?? '';
-        $token = $data['token'] ?? '';
         $code = $data['code'] ?? '';
         $newPassword = $data['new_password'] ?? '';
-        if (!$email || !$token || !$code || !$newPassword) {
+        if (!$email || !$code || !$newPassword) {
             Response::json(['message' => 'Dados incompletos'], 400);
             return;
         }
-        $reset = PasswordReset::findValid($email, $token, $code);
+        $reset = PasswordReset::findValid($email, $code);
         if (!$reset) {
             Response::json(['message' => 'Pedido inválido ou expirado'], 400);
             return;
