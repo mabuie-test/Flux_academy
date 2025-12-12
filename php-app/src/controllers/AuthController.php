@@ -27,7 +27,8 @@ class AuthController
             }
             $data['referred_by'] = $referrer['referral_code'];
         }
-        $role = in_array($data['role'] ?? 'cliente', ['cliente', 'admin'], true) ? $data['role'] : 'cliente';
+        $roleInput = $data['role'] ?? 'cliente';
+        $role = in_array($roleInput, ['cliente', 'admin'], true) ? $roleInput : 'cliente';
         $userId = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
