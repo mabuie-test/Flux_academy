@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encomendas - Admin</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="page" data-page="orders">
+  <header class="topbar">
+    <div class="brand">Admin · Encomendas</div>
+    <nav>
+      <a href="/admin.html">Dashboard</a>
+      <a href="/admin-services.html">Serviços</a>
+      <a href="/admin-users.html">Utilizadores</a>
+      <a href="/admin-metrics.html">Métricas</a>
+      <button id="logout" class="ghost">Terminar sessão</button>
+    </nav>
+  </header>
+  <main class="content">
+    <section class="card">
+      <h1>Gestão de encomendas</h1>
+      <p>Veja estados, materiais e finalize entregas. Cada ação pede confirmação com diálogo estilizado.</p>
+      <div id="admin-feedback" class="toast"></div>
+      <div id="admin-orders" class="grid"></div>
+    </section>
+    <section class="card">
+      <h2>Auditoria rápida</h2>
+      <div id="admin-audits" class="list"></div>
+    </section>
+  </main>
+  <div id="confirm-dialog" class="modal hidden">
+    <div class="modal-content">
+      <p id="confirm-text"></p>
+      <div class="inline-group">
+        <button id="confirm-cancel" class="ghost">Cancelar</button>
+        <button id="confirm-accept" class="primary">Confirmar</button>
+      </div>
+    </div>
+  </div>
+  <footer class="footer"><p class="muted">© 2024 Fluxosoftwares</p></footer>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/admin.js"></script>
+</body>
+</html>

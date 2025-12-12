@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estação interna - Admin</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="page" data-page="chat">
+  <header class="topbar">
+    <div class="brand">Admin · Estação</div>
+    <nav>
+      <a href="/admin.html">Dashboard</a>
+      <a href="/admin-orders.html">Encomendas</a>
+      <a href="/admin-metrics.html">Métricas</a>
+      <button id="logout" class="ghost">Terminar sessão</button>
+    </nav>
+  </header>
+  <main class="content">
+    <section class="card">
+      <h1>Estação de trabalho dos administradores</h1>
+      <p class="muted">Chat interno com anexos, filtrável por encomenda.</p>
+      <div class="inline-group">
+        <input type="number" id="chat-order" placeholder="Filtrar por encomenda (opcional)" />
+        <button id="chat-refresh" class="ghost">Atualizar</button>
+      </div>
+      <div id="admin-chat" class="chat-board"></div>
+      <div class="chat-compose">
+        <textarea id="chat-message" rows="2" placeholder="Escreva uma nota interna"></textarea>
+        <div class="inline-group">
+          <input type="file" id="chat-file" />
+          <button id="chat-send" class="primary">Enviar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><p class="muted">© 2024 Fluxosoftwares</p></footer>
+  <script src="/admin.js"></script>
+</body>
+</html>

@@ -1,6 +1,11 @@
 const apiBase = '/api';
 let authToken = localStorage.getItem('token') || '';
 
+function syncNav() {
+  document.querySelectorAll('.anon-only').forEach((el) => (el.style.display = authToken ? 'none' : 'inline-flex'));
+  document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
+}
+
 function captureReferralAttribution() {
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('ref');
@@ -15,6 +20,26 @@ function captureReferralAttribution() {
 }
 
 captureReferralAttribution();
+
+function confirmAction(message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('confirm-dialog');
+    const text = document.getElementById('confirm-text');
+    if (!modal || !text) return resolve(confirm(message));
+    text.textContent = message;
+    modal.classList.remove('hidden');
+    const accept = document.getElementById('confirm-accept');
+    const cancel = document.getElementById('confirm-cancel');
+    const cleanup = (choice) => {
+      modal.classList.add('hidden');
+      accept.onclick = null;
+      cancel.onclick = null;
+      resolve(choice);
+    };
+    accept.onclick = () => cleanup(true);
+    cancel.onclick = () => cleanup(false);
+  });
+}
 
 function showToast(text) {
   const zone = document.getElementById('feedback');
@@ -40,6 +65,7 @@ if (logout) {
   logout.onclick = () => {
     authToken = '';
     localStorage.removeItem('token');
+    syncNav();
     window.location.href = '/login.html';
   };
 }
@@ -57,6 +83,8 @@ if (orderForm) {
   orderForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!requireAuth()) return;
+    const ok = await confirmAction('Confirmar envio desta encomenda?');
+    if (!ok) return;
     const raw = new FormData(orderForm);
     const payload = new FormData();
     payload.set('tipo', raw.get('workType'));
@@ -258,6 +286,8 @@ if (serviceForm) {
   serviceForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!requireAuth()) return;
+    const ok = await confirmAction('Submeter este pedido especializado?');
+    if (!ok) return;
     const raw = new FormData(serviceForm);
     const payload = new FormData();
     ['categoria', 'contact_name', 'contact_email', 'contact_phone', 'detalhes', 'norma_preferida', 'software_preferido'].forEach((f) => {
@@ -278,6 +308,36 @@ if (serviceForm) {
     }
   });
 }
+
+['tcc-form', 'special-form'].forEach((id) => {
+  const form = document.getElementById(id);
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!requireAuth()) return;
+    const ok = await confirmAction('Confirmar envio do pedido?');
+    if (!ok) return;
+    const raw = new FormData(form);
+    const payload = new FormData();
+    const categoria = id === 'tcc-form' ? 'Acompanhamento TCC' : 'Trabalho prático especial';
+    payload.set('categoria', categoria);
+    payload.set('contact_name', raw.get('contactName'));
+    payload.set('contact_email', raw.get('contactEmail'));
+    if (raw.get('contactPhone')) payload.set('contact_phone', raw.get('contactPhone'));
+    if (raw.get('details')) payload.set('detalhes', raw.get('details'));
+    if (raw.get('goals')) payload.set('norma_preferida', raw.get('goals'));
+    try {
+      const res = await fetch(`${apiBase}/services`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}` }, body: payload });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Erro ao enviar pedido');
+      showToast('Pedido submetido com sucesso.');
+      form.reset();
+      loadMyServices();
+    } catch (err) {
+      showToast(err.message);
+    }
+  });
+});
 
 async function loadMyServices() {
   const container = document.getElementById('service-list');
@@ -326,3 +386,5 @@ document.querySelectorAll('[data-service-type]').forEach((btn) => {
     document.getElementById('service-card')?.scrollIntoView({ behavior: 'smooth' });
   });
 });
+
+syncNav();

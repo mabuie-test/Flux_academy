@@ -15,6 +15,14 @@ if ($uri === '/api/auth/login' && $method === 'POST') {
     AuthController::login();
     return;
 }
+if ($uri === '/api/auth/password/forgot' && $method === 'POST') {
+    AuthController::requestReset();
+    return;
+}
+if ($uri === '/api/auth/password/reset' && $method === 'POST') {
+    AuthController::resetPassword();
+    return;
+}
 if ($uri === '/api/auth/admin-register' && $method === 'POST') {
     AuthController::adminRegister();
     return;

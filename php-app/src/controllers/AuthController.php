@@ -4,8 +4,10 @@ namespace App\Controllers;
 use App\Helpers\Response;
 use App\Helpers\Auth;
 use App\Helpers\AuditHelper;
+use App\Helpers\Mailer;
 use App\Models\User;
 use App\Config\Config;
+use App\Models\PasswordReset;
 
 class AuthController
 {
@@ -60,6 +62,63 @@ class AuthController
         $token = Auth::issueToken($user);
         AuditHelper::log($user['id'], 'login', ['email' => $user['email']]);
         Response::json(['token' => $token, 'user' => $user]);
+    }
+
+    public static function requestReset(): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        $email = $data['email'] ?? '';
+        if (!$email) {
+            Response::json(['message' => 'Email obrigatório'], 400);
+            return;
+        }
+        $user = User::findByEmail($email);
+        if (!$user) {
+            Response::json(['message' => 'Conta não encontrada'], 404);
+            return;
+        }
+        $token = bin2hex(random_bytes(16));
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $expires = date('Y-m-d H:i:s', time() + 3600);
+        PasswordReset::create($email, $token, $code, $expires);
+        $appUrl = rtrim(Config::get('APP_URL', ''), '/');
+        $link = $appUrl ? $appUrl . "/reset.html?token={$token}&email=" . urlencode($email) : '';
+        $body = "<p>Olá,</p><p>Recebemos um pedido para redefinir a sua palavra-passe.</p><p>Código: <strong>{$code}</strong></p>";
+        if ($link) {
+            $body .= "<p>Pode também clicar neste link: <a href='{$link}'>Redefinir palavra-passe</a></p>";
+        }
+        $body .= '<p>O código expira em 60 minutos.</p>';
+        Mailer::send($email, 'Recuperar acesso - Flux Academy', $body);
+        AuditHelper::log($user['id'], 'password_reset_request', ['email' => $email]);
+        Response::json(['message' => 'Código enviado para o email.']);
+    }
+
+    public static function resetPassword(): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        $email = $data['email'] ?? '';
+        $token = $data['token'] ?? '';
+        $code = $data['code'] ?? '';
+        $newPassword = $data['new_password'] ?? '';
+        if (!$email || !$token || !$code || !$newPassword) {
+            Response::json(['message' => 'Dados incompletos'], 400);
+            return;
+        }
+        $reset = PasswordReset::findValid($email, $token, $code);
+        if (!$reset) {
+            Response::json(['message' => 'Pedido inválido ou expirado'], 400);
+            return;
+        }
+        $user = User::findByEmail($email);
+        if (!$user) {
+            Response::json(['message' => 'Utilizador não encontrado'], 404);
+            return;
+        }
+        User::updatePassword((int) $user['id'], $newPassword);
+        PasswordReset::markUsed((int) $reset['id']);
+        AuditHelper::log($user['id'], 'password_reset_confirmed', ['email' => $email]);
+        Mailer::send($email, 'Palavra-passe atualizada', '<p>A sua palavra-passe foi redefinida com sucesso.</p>');
+        Response::json(['message' => 'Palavra-passe atualizada com sucesso.']);
     }
 
     public static function adminRegister(): void

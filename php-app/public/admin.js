@@ -3,6 +3,7 @@ let authToken = localStorage.getItem('token') || '';
 let statusChart;
 let revenueChart;
 let servicesChart;
+const adminPage = document.body.dataset.page || 'dashboard';
 
 function requireAdmin() {
   if (!authToken) {
@@ -21,6 +22,26 @@ function toast(msg) {
   } else {
     alert(msg);
   }
+}
+
+function confirmAction(message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('confirm-dialog');
+    const text = document.getElementById('confirm-text');
+    if (!modal || !text) return resolve(confirm(message));
+    text.textContent = message;
+    modal.classList.remove('hidden');
+    const accept = document.getElementById('confirm-accept');
+    const cancel = document.getElementById('confirm-cancel');
+    const cleanup = (choice) => {
+      modal.classList.add('hidden');
+      accept.onclick = null;
+      cancel.onclick = null;
+      resolve(choice);
+    };
+    accept.onclick = () => cleanup(true);
+    cancel.onclick = () => cleanup(false);
+  });
 }
 
 const logout = document.getElementById('logout');
@@ -71,6 +92,8 @@ async function loadOrders() {
 
 async function approveInvoice(invoiceId, number, email) {
   if (!invoiceId) return;
+  const ok = await confirmAction('Confirmar que o pagamento foi validado?');
+  if (!ok) return;
   const form = new FormData();
   form.set('invoice_id', invoiceId);
   form.set('numero', number || '');
@@ -89,6 +112,8 @@ async function approveInvoice(invoiceId, number, email) {
 
 async function rejectInvoice(invoiceId, orderId) {
   if (!invoiceId) return;
+  const ok = await confirmAction('Deseja marcar o pagamento como rejeitado/pendente?');
+  if (!ok) return;
   const form = new FormData();
   form.set('invoice_id', invoiceId);
   form.set('order_id', orderId);
@@ -106,6 +131,8 @@ async function rejectInvoice(invoiceId, orderId) {
 
 async function uploadFinal(orderId, input) {
   if (!input?.files?.length) return toast('Selecione um ficheiro primeiro');
+  const ok = await confirmAction('Entregar este documento ao cliente?');
+  if (!ok) return;
   const form = new FormData();
   form.set('order_id', orderId);
   form.append('final', input.files[0]);
@@ -298,22 +325,6 @@ async function loadAudits() {
   });
 }
 
-if (document.getElementById('admin-orders')) {
-  loadOrders();
-  loadUsers();
-  loadMetrics();
-  loadCommissions();
-  loadPayouts();
-  loadAudits();
-  loadAdminChat();
-  setInterval(() => {
-    loadOrders();
-    loadMetrics();
-    loadAudits();
-    loadAdminChat();
-  }, 20000);
-}
-
 async function loadServices() {
   const res = await fetch(`${apiBase}/admin/services`, { headers: { Authorization: `Bearer ${authToken}` } });
   const data = await res.json();
@@ -354,11 +365,6 @@ async function updateServiceStatus(id, status) {
   if (!res.ok) return toast(data.message || 'Erro ao atualizar serviço');
   toast('Serviço atualizado');
   loadServices();
-}
-
-if (document.getElementById('admin-services')) {
-  loadServices();
-  setInterval(loadServices, 25000);
 }
 
 async function loadAdminChat() {
@@ -408,5 +414,49 @@ const chatSend = document.getElementById('chat-send');
 if (chatSend) {
   chatSend.onclick = sendAdminChat;
   document.getElementById('chat-refresh')?.addEventListener('click', loadAdminChat);
-  setInterval(loadAdminChat, 15000);
+}
+
+switch (adminPage) {
+  case 'orders':
+    loadOrders();
+    loadMetrics();
+    loadAudits();
+    setInterval(() => {
+      loadOrders();
+      loadMetrics();
+      loadAudits();
+    }, 20000);
+    break;
+  case 'services':
+    loadServices();
+    setInterval(loadServices, 20000);
+    break;
+  case 'users':
+    loadUsers();
+    break;
+  case 'metrics':
+    loadMetrics();
+    loadAudits();
+    setInterval(() => {
+      loadMetrics();
+      loadAudits();
+    }, 20000);
+    break;
+  case 'affiliates':
+    loadCommissions();
+    loadPayouts();
+    loadMetrics();
+    setInterval(() => {
+      loadCommissions();
+      loadPayouts();
+    }, 20000);
+    break;
+  case 'chat':
+    loadAdminChat();
+    document.getElementById('chat-refresh')?.addEventListener('click', loadAdminChat);
+    setInterval(loadAdminChat, 15000);
+    break;
+  default:
+    loadMetrics();
+    loadAudits();
 }

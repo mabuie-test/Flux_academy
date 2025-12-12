@@ -65,6 +65,12 @@ class User
         return array_column($stmt->fetchAll(), 'email');
     }
 
+    public static function updatePassword(int $id, string $password): void
+    {
+        $stmt = Database::pdo()->prepare('UPDATE users SET password_hash = :hash WHERE id = :id');
+        $stmt->execute([':hash' => password_hash($password, PASSWORD_BCRYPT), ':id' => $id]);
+    }
+
     public static function setActive(int $id, bool $active): void
     {
         $stmt = Database::pdo()->prepare('UPDATE users SET active = :active WHERE id = :id');

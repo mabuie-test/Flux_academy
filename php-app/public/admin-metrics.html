@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Métricas - Admin</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="page" data-page="metrics">
+  <header class="topbar">
+    <div class="brand">Admin · Métricas</div>
+    <nav>
+      <a href="/admin.html">Dashboard</a>
+      <a href="/admin-orders.html">Encomendas</a>
+      <a href="/admin-services.html">Serviços</a>
+      <a href="/admin-users.html">Utilizadores</a>
+      <button id="logout" class="ghost">Terminar sessão</button>
+    </nav>
+  </header>
+  <main class="content grid-two">
+    <section class="card">
+      <h1>Métricas e gráficos</h1>
+      <p id="admin-metrics" class="muted">A carregar...</p>
+      <canvas id="status-chart" height="180"></canvas>
+      <canvas id="revenue-chart" height="180"></canvas>
+      <canvas id="services-chart" height="180"></canvas>
+    </section>
+    <section class="card">
+      <h2>Auditoria</h2>
+      <p class="muted">Logins, pagamentos, uploads e decisões críticas.</p>
+      <div id="admin-audits" class="list"></div>
+    </section>
+  </main>
+  <footer class="footer"><p class="muted">© 2024 Fluxosoftwares</p></footer>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/admin.js"></script>
+</body>
+</html>

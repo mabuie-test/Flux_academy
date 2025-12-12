@@ -6,83 +6,50 @@
   <title>Painel Admin - Flux Academy</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
-<body class="page">
+<body class="page" data-page="dashboard">
   <header class="topbar">
     <div class="brand">Flux Academy · Admin</div>
     <nav>
       <a href="/index.html">Início</a>
+      <a href="/admin-orders.html">Encomendas</a>
+      <a href="/admin-services.html">Serviços</a>
+      <a href="/admin-users.html">Utilizadores</a>
+      <a href="/admin-metrics.html">Métricas</a>
+      <a href="/admin-affiliates.html">Afiliados</a>
+      <a href="/admin-chat.html">Estação</a>
       <button id="logout" class="ghost">Terminar sessão</button>
     </nav>
   </header>
 
-  <main class="content">
+  <main class="content cards-grid">
     <section class="card">
-      <h1>Gestão de encomendas</h1>
-      <p>Veja as encomendas, materiais e marque faturas como pagas.</p>
-      <div id="admin-feedback" class="toast"></div>
-      <div id="admin-orders" class="grid"></div>
+      <h1>Administração segmentada</h1>
+      <p class="muted">Clique para aceder às páginas dedicadas. Cada módulo abre separado para manter o painel organizado.</p>
     </section>
-    <section class="card">
-      <h2>Pedidos de serviços especializados</h2>
-      <p class="muted">Revisões, estatística, apresentações, CV e verificação de plágio.</p>
-      <div id="admin-services" class="grid"></div>
-      <div class="grid-two">
-        <div>
-          <h3>Serviços mais pedidos</h3>
-          <canvas id="services-chart" height="160"></canvas>
-        </div>
-        <div class="muted">
-          Use os filtros do painel para acompanhar a produtividade e a procura por cada serviço, garantindo decisões mais rápidas.
-        </div>
-      </div>
-    </section>
-    <section class="card">
-      <h2>Utilizadores</h2>
-      <p class="muted">Ative/desative contas e acompanhe referências.</p>
-      <div id="admin-users" class="list"></div>
-    </section>
-    <section class="card grid-two">
-      <div>
-        <h2>Métricas</h2>
-        <p id="admin-metrics" class="muted">A carregar...</p>
-        <canvas id="status-chart" height="180"></canvas>
-        <canvas id="revenue-chart" height="180"></canvas>
-      </div>
-      <div>
-        <h2>Auditoria</h2>
-        <p class="muted">Registo de login, faturas, uploads e decisões.</p>
-        <div id="admin-audits" class="list"></div>
-      </div>
-    </section>
-    <section class="card grid-two">
-      <div>
-        <h2>Comissões de afiliados</h2>
-        <div id="admin-commissions" class="list"></div>
-        <h3>Top indicados</h3>
-        <div id="admin-affiliate-leaders" class="list"></div>
-      </div>
-      <div>
-        <h2>Pagamentos de afiliados</h2>
-        <div id="admin-payouts" class="list"></div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Estação de trabalho dos administradores</h2>
-      <p class="muted">Troque mensagens e documentos entre admins, com opção de associar a uma encomenda.</p>
-      <div class="inline-group">
-        <input type="number" id="chat-order" placeholder="Filtrar por encomenda (opcional)" />
-        <button id="chat-refresh" class="ghost">Atualizar</button>
-      </div>
-      <div id="admin-chat" class="chat-board"></div>
-      <div class="chat-compose">
-        <textarea id="chat-message" rows="2" placeholder="Escreva uma nota interna"></textarea>
-        <div class="inline-group">
-          <input type="file" id="chat-file" />
-          <button id="chat-send" class="primary">Enviar</button>
-        </div>
-      </div>
-    </section>
+    <a class="card link-card" href="/admin-orders.html">
+      <h3>Gestão de encomendas</h3>
+      <p>Validar pagamentos, ver materiais, entregar ficheiros finais.</p>
+    </a>
+    <a class="card link-card" href="/admin-services.html">
+      <h3>Serviços especializados</h3>
+      <p>Revisões, estatísticas, apresentações, CVs, plágio e resumos.</p>
+    </a>
+    <a class="card link-card" href="/admin-users.html">
+      <h3>Utilizadores e auditoria</h3>
+      <p>Ativar/pausar contas, registar logins e IPs.</p>
+    </a>
+    <a class="card link-card" href="/admin-affiliates.html">
+      <h3>Afiliados</h3>
+      <p>Comissões, levantamentos e ranking de referências.</p>
+    </a>
+    <a class="card link-card" href="/admin-metrics.html">
+      <h3>Métricas e dashboards</h3>
+      <p>Gráficos de receita, estados e serviços.</p>
+    </a>
+    <a class="card link-card" href="/admin-chat.html">
+      <h3>Estação de trabalho</h3>
+      <p>Mensagens internas com anexos associados às encomendas.</p>
+    </a>
   </main>
 
   <footer class="footer">
@@ -97,8 +64,6 @@
       <p class="muted">© 2024 Fluxosoftwares</p>
     </div>
   </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/admin.js"></script>
 </body>
 </html>

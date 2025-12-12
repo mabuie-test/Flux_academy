@@ -43,6 +43,28 @@ function handleLogin(token) {
   }
 }
 
+async function requestReset(email) {
+  const res = await fetch(`${apiBase}/auth/password/forgot`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Erro ao enviar email');
+  return data;
+}
+
+async function resetPassword(payload) {
+  const res = await fetch(`${apiBase}/auth/password/reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Erro ao redefinir palavra-passe');
+  return data;
+}
+
 const signupForm = document.getElementById('signup-form');
 if (signupForm) {
   signupForm.addEventListener('submit', async (e) => {
@@ -79,6 +101,37 @@ if (signinForm) {
       handleLogin(data.token);
     } else {
       alert(data.message || 'Erro no login');
+    }
+  });
+}
+
+const forgotForm = document.getElementById('forgot-form');
+if (forgotForm) {
+  forgotForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await requestReset(forgotForm.email.value);
+      alert('Enviámos um código e link para o seu email.');
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+}
+
+const resetForm = document.getElementById('reset-form');
+if (resetForm) {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('email')) resetForm.email.value = params.get('email');
+  if (params.get('token')) resetForm.token.value = params.get('token');
+  resetForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = Object.fromEntries(new FormData(resetForm).entries());
+    try {
+      await resetPassword(payload);
+      alert('Palavra-passe atualizada. Faça login novamente.');
+      window.location.href = '/login.html';
+    } catch (err) {
+      alert(err.message);
     }
   });
 }

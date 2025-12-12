@@ -123,3 +123,13 @@ CREATE TABLE admin_messages (
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (order_id) REFERENCES orders(id)
 );
+
+CREATE TABLE password_resets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(150) NOT NULL,
+  token VARCHAR(100) NOT NULL,
+  code VARCHAR(6) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  used TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

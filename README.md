@@ -48,6 +48,8 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 ## API principal (todas em `/api`)
 - `POST /api/auth/register` — registo de cliente (JSON: name, email, password, opcional referred_by)
 - `POST /api/auth/login` — autenticação (JSON: email, password)
+- `POST /api/auth/password/forgot` — envia código e link de recuperação para o email do utilizador
+- `POST /api/auth/password/reset` — confirma código/token e define nova palavra-passe
 - `POST /api/auth/admin-register` — registo de administrador (JSON: name, email, password, setupToken)
 - `POST /api/orders/quote` — cálculo de preço (JSON: paginas, nivel, complexidade, urgencia)
 - `POST /api/orders` — criação de encomenda + fatura (form-data; requer Bearer token)
@@ -90,7 +92,7 @@ Autenticação: envie `Authorization: Bearer <token>` devolvido no login/registo
 Preço base actual: **35 MZN** por página (configurável via `BASE_PRICE_PER_PAGE` no `.env`). Multiplicadores seguem o helper `php-app/src/helpers/pricing.php`.
 
 ## Estrutura
-- `php-app/public/` — páginas HTML/JS/CSS e front controller `index.php` que serve a API e os assets estáticos.
+- `php-app/public/` — páginas HTML/JS/CSS e front controller `index.php` que serve a API e os assets estáticos. Páginas dedicadas: `order.html` (encomendas), `services.html` (serviços/TCC/resumos), `documents.html` (faturas e entregas), `admin-*.html` (módulos separados do painel) e `reset.html` (recuperação de senha).
 - `php-app/src/` — configuração, controladores, modelos, helpers (JWT, auditoria, mailer, pricing).
 - `php-app/schema.sql` — tabelas MySQL (users, orders, invoices, audits, afiliados/payouts, etc.).
 - Tabelas adicionais: `affiliate_commissions` para créditos de referência (18%), `feedbacks` para avaliações pós-entrega e `admin_messages` para o chat interno.
@@ -104,6 +106,7 @@ Preço base actual: **35 MZN** por página (configurável via `BASE_PRICE_PER_PA
 - Preparação de apresentações e defesas (slides e roteiros).
 - Criação/otimização de CV, cartas de candidatura e portfólios.
 - Verificação de plágio e otimização de referências bibliográficas.
+- Resumos executivos e sínteses estruturadas.
 
 ### Ideias adicionais sugeridas
 - Coaching para métodos de pesquisa e desenho experimental.
