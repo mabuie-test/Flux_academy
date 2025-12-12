@@ -23,6 +23,10 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
    mysql -u <user> -p < db_password
    source schema.sql;
    ```
+   > Se já tinha criado a BD com uma versão anterior e o pedido de levantamento falhar com `mpesa_destino` em falta, execute:
+   > ```sql
+   > ALTER TABLE affiliate_payouts ADD COLUMN mpesa_destino VARCHAR(50) NULL AFTER metodo;
+   > ```
 5. Arranque localmente para desenvolvimento:
    ```bash
    php -S localhost:8080 -t public
