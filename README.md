@@ -29,6 +29,22 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
    ```
 6. Aponte o webroot do seu hosting PHP para `php-app/public/`. As páginas HTML e a API REST vivem no mesmo directório; tudo sem Node.js.
 
+### Ambiente de desenvolvimento (resumo)
+- Guia passo-a-passo em `start.txt` (inclui criação da BD, instalação e arranque em `php -S`).
+- Servidor de desenvolvimento: `php -S localhost:8080 -t public` dentro de `php-app/`.
+- Primeiro admin: `POST /api/auth/admin-register` com `setupToken` igual ao valor de `ADMIN_SETUP_TOKEN` no `.env`.
+
+## Variáveis de ambiente principais
+| Chave | Descrição |
+| --- | --- |
+| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Ligação MySQL |
+| `JWT_SECRET` | Assinatura dos tokens JWT |
+| `ADMIN_SETUP_TOKEN` | Token opcional para proteger o registo de administradores |
+| `BASE_PRICE_PER_PAGE` | Preço base por página (padrão 35 MZN) |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM`, `MAIL_FROM_NAME` | SMTP para PHPMailer |
+| `APP_URL` | URL público usado em links de email |
+| `STORAGE_PATH` | Pasta para uploads (por padrão `storage/` dentro de `php-app`) |
+
 ## API principal (todas em `/api`)
 - `POST /api/auth/register` — registo de cliente (JSON: name, email, password, opcional referred_by)
 - `POST /api/auth/login` — autenticação (JSON: email, password)
@@ -59,6 +75,11 @@ Plataforma web em PHP 8.1+ com MySQL para encomendas académicas, cálculo autom
 - `GET/POST /api/admin/services` — acompanhar pedidos de serviços especializados e atualizar estado
 
 Autenticação: envie `Authorization: Bearer <token>` devolvido no login/registo.
+
+### Notificações e emails automáticos
+- Clientes: emissão de fatura, receção de comprovativo, aprovação/rejeição de pagamento, entrega final, atualizações de serviços especializados, alertas de afiliados/payouts e mensagens internas aparecem no feed `/api/notifications` e via email (PHPMailer configurado no `.env`).
+- Administradores: novos pedidos, comprovativos, materiais didáticos e mensagens da estação interna são enviados por email e listados em `/api/admin/audits`.
+- Cada evento crítico é gravado na tabela `audits` com IP, utilizador e contexto para rastreabilidade.
 
 ### Programa de afiliados por link
 - Cada utilizador recebe um `referral_code` único e partilhável (ex.: `https://seu-dominio/register.html?ref=ABCD1234`).

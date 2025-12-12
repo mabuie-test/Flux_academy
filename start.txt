@@ -1,0 +1,51 @@
+# Guia rápido para arrancar em modo desenvolvimento (PHP/MySQL)
+
+Pré-requisitos já instalados: PHP 8.5, Composer e MySQL. Siga estes passos num terminal a partir da raiz do repositório.
+
+1. Criar ficheiro de ambiente
+   ```bash
+   cp php-app/.env.example php-app/.env
+   ```
+   Edite `php-app/.env` e defina:
+   - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+   - SMTP (`MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM`) para PHPMailer
+   - `JWT_SECRET` e, se quiser proteger registo de admin, `ADMIN_SETUP_TOKEN`
+
+2. Instalar dependências
+   ```bash
+   cd php-app
+   composer install
+   cd ..
+   ```
+
+3. Criar base de dados e importar o esquema
+   ```bash
+   mysql -u <user> -p
+   CREATE DATABASE flux_academy CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   USE flux_academy;
+   SOURCE schema.sql;
+   ```
+
+4. Subir o servidor embutido em modo desenvolvimento
+   ```bash
+   cd php-app
+   php -S localhost:8080 -t public
+   ```
+   O frontend (HTML/JS/CSS) e a API REST responderão em `http://localhost:8080`.
+
+5. Criar o primeiro administrador (via API)
+   - Certifique-se que `ADMIN_SETUP_TOKEN` está definido no `.env`.
+   - Envie um POST para `http://localhost:8080/api/auth/admin-register` com JSON:
+     ```json
+     {"name":"Admin","email":"admin@example.com","password":"seguro123","setupToken":"<ADMIN_SETUP_TOKEN>"}
+     ```
+
+6. Iniciar sessão e testar
+   - Aceda a `http://localhost:8080/login.html` para entrar como cliente ou admin.
+   - Crie um pedido para ver a emissão automática de fatura e notificações.
+
+7. Logs úteis
+   - Auditorias ficam na tabela `audits`.
+   - Emails são enviados via PHPMailer; se estiver em modo dev sem SMTP real, pode apontar para MailHog/SMTP de teste.
+
+Dica: mantenha dois terminais, um para o servidor PHP e outro para consultar logs/BD. Use `php -S` apenas para desenvolvimento; em produção use Apache/Nginx apontando para `php-app/public`.
