@@ -42,4 +42,14 @@ class Auth
             exit;
         }
     }
+
+    public static function requireAdmin(): array
+    {
+        $user = self::requireUser();
+        if ($user['role'] !== 'admin') {
+            Response::json(['message' => 'Acesso restrito a administradores'], 403);
+            exit;
+        }
+        return $user;
+    }
 }

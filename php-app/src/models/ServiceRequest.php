@@ -8,7 +8,7 @@ class ServiceRequest
 {
     public static function create(array $data): int
     {
-        $db = Database::getInstance();
+        $db = Database::pdo();
         $stmt = $db->prepare('INSERT INTO service_requests (user_id, categoria, contact_name, contact_email, contact_phone, norma_preferida, software_preferido, detalhes, attachment) VALUES (:user_id, :categoria, :contact_name, :contact_email, :contact_phone, :norma, :software, :detalhes, :attachment)');
         $stmt->execute([
             ':user_id' => $data['user_id'] ?? null,
@@ -26,14 +26,14 @@ class ServiceRequest
 
     public static function listAll(): array
     {
-        $db = Database::getInstance();
+        $db = Database::pdo();
         $stmt = $db->query('SELECT sr.*, u.email AS user_email FROM service_requests sr LEFT JOIN users u ON sr.user_id = u.id ORDER BY sr.created_at DESC');
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function listForUser(int $userId): array
     {
-        $db = Database::getInstance();
+        $db = Database::pdo();
         $stmt = $db->prepare('SELECT * FROM service_requests WHERE user_id = :user ORDER BY created_at DESC');
         $stmt->execute([':user' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -41,7 +41,7 @@ class ServiceRequest
 
     public static function find(int $id): ?array
     {
-        $db = Database::getInstance();
+        $db = Database::pdo();
         $stmt = $db->prepare('SELECT sr.*, u.email AS user_email FROM service_requests sr LEFT JOIN users u ON sr.user_id = u.id WHERE sr.id = :id');
         $stmt->execute([':id' => $id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -50,7 +50,7 @@ class ServiceRequest
 
     public static function updateStatus(int $id, string $status): void
     {
-        $db = Database::getInstance();
+        $db = Database::pdo();
         $stmt = $db->prepare('UPDATE service_requests SET status = :status WHERE id = :id');
         $stmt->execute([':status' => $status, ':id' => $id]);
     }

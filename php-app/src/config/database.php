@@ -6,6 +6,15 @@ use PDOException;
 
 class Database
 {
+    /**
+     * Legacy alias maintained for models that still call getInstance().
+     * Returns the shared PDO connection.
+     */
+    public static function getInstance(): PDO
+    {
+        return self::pdo();
+    }
+
     public static function pdo(): PDO
     {
         static $pdo = null;
