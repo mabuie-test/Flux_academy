@@ -40,6 +40,7 @@ async function loadInvoice() {
       <p><strong>Complexidade:</strong> ${order.complexidade} · Urgência: ${order.urgencia}</p>
       <p><strong>Valor:</strong> ${order.valor_total || order.total || '—'} MZN</p>
       <p><strong>Materiais fornecidos:</strong> ${materials.length ? materials.map((m) => `<a href="${m}" target="_blank">${m.split('/').pop()}</a>`).join(', ') : 'Nenhum'}</p>
+      ${order.comprovativo ? `<p class="muted">Comprovativo já enviado: <a href="${order.comprovativo}" target="_blank">abrir</a></p>` : ''}
       <hr />
       <p><strong>Pagamento M-Pesa</strong></p>
       <p>Número: 851619970 · Titular: Maria António Chicavele</p>
@@ -95,3 +96,4 @@ if (proofForm) {
 }
 
 loadInvoice();
+setInterval(loadInvoice, 12000);

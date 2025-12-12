@@ -10,6 +10,11 @@ function requireAdmin() {
     window.location.href = '/login.html';
     return false;
   }
+  const role = localStorage.getItem('role');
+  if (role !== 'admin') {
+    window.location.href = '/login.html';
+    return false;
+  }
   return true;
 }
 
@@ -71,6 +76,7 @@ async function loadOrders() {
         <p>Estado: ${order.estado} · Fatura ${order.invoice_numero || '—'} (${order.invoice_estado || 'EMITIDA'})</p>
         <p>Total: ${order.valor_total || '—'}</p>
         <p>Materiais: ${materials.length ? materials.map((m) => `<a href="${m}" target="_blank">${m.split('/').pop()}</a>`).join(', ') : 'Nenhum'}</p>
+        ${order.comprovativo ? `<p class="muted">Comprovativo: <a href="${order.comprovativo}" target="_blank">ver ficheiro</a></p>` : '<p class="muted">Comprovativo pendente</p>'}
         <div class="stacked-actions">
           <button class="primary" data-action="approve" data-invoice="${order.invoice_id || ''}" data-number="${order.invoice_numero || ''}" data-email="${order.user_email || ''}" data-order="${order.id}">Marcar pago</button>
           <button class="ghost" data-action="reject" data-invoice="${order.invoice_id || ''}" data-order="${order.id}">Rejeitar</button>
@@ -196,7 +202,11 @@ async function loadMetrics() {
     return;
   }
   const m = data.metrics;
-  zone.innerHTML = `Pedidos: ${m.orders} · Faturas: ${m.invoices} · Pago: ${m.paid} · Pendente: ${m.pending}`;
+  zone.innerHTML = `Pedidos: ${m.orders} · Faturas: ${m.invoices} · Pago: ${m.paid} · Pendente: ${m.pending} · Levantamentos em análise: ${m.payouts_pending}`;
+  const affiliateSummary = document.getElementById('admin-affiliate-summary');
+  if (affiliateSummary) {
+    affiliateSummary.textContent = `Saldo pendente para afiliados: ${m.payouts_pending} MZN`;
+  }
   const chartData = (data.status || []).map((s) => ({ label: s.estado, value: s.total }));
   if (window.Chart && document.getElementById('status-chart')) {
     const ctx = document.getElementById('status-chart').getContext('2d');
@@ -326,6 +336,24 @@ async function loadAudits() {
   });
 }
 
+async function loadFeedbackAdmin() {
+  const zone = document.getElementById('admin-feedback-list');
+  if (!zone) return;
+  const res = await fetch(`${apiBase}/admin/feedback`, { headers: { Authorization: `Bearer ${authToken}` } });
+  const data = await res.json();
+  zone.innerHTML = '';
+  if (!res.ok) {
+    zone.innerHTML = `<p class="muted">${data.message || 'Não foi possível carregar feedback'}</p>`;
+    return;
+  }
+  (data.feedback || []).forEach((fb) => {
+    const item = document.createElement('div');
+    item.className = 'list-item';
+    item.innerHTML = `<div><strong>Pedido #${fb.order_id}</strong><p class="muted">${fb.rating}/5 · ${fb.grade || '—'}</p><p>${fb.comment || ''}</p></div><span class="badge">${fb.created_at || ''}</span>`;
+    zone.appendChild(item);
+  });
+}
+
 async function loadServices() {
   const res = await fetch(`${apiBase}/admin/services`, { headers: { Authorization: `Bearer ${authToken}` } });
   const data = await res.json();
@@ -422,10 +450,12 @@ switch (adminPage) {
     loadOrders();
     loadMetrics();
     loadAudits();
+    loadFeedbackAdmin();
     setInterval(() => {
       loadOrders();
       loadMetrics();
       loadAudits();
+      loadFeedbackAdmin();
     }, 20000);
     break;
   case 'services':

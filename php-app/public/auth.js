@@ -12,13 +12,16 @@ function captureReferral() {
 captureReferral();
 
 function toggleNav() {
+  const role = localStorage.getItem('role');
   document.querySelectorAll('.anon-only').forEach((el) => (el.style.display = authToken ? 'none' : 'inline-flex'));
   document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
+  document.querySelectorAll('.admin-only').forEach((el) => (el.style.display = role === 'admin' ? 'inline-flex' : 'none'));
   const logout = document.getElementById('logout');
   if (logout) {
     logout.onclick = () => {
       authToken = '';
       localStorage.removeItem('token');
+      localStorage.removeItem('role');
       toggleNav();
     };
   }
@@ -34,12 +37,13 @@ function renderReferralTag() {
   }
 }
 
-function handleLogin(token) {
+function handleLogin(token, role) {
   if (token) {
     authToken = token;
     localStorage.setItem('token', token);
+    if (role) localStorage.setItem('role', role);
     toggleNav();
-    window.location.href = '/';
+    window.location.href = role === 'admin' ? '/admin.html' : '/';
   }
 }
 
@@ -79,7 +83,7 @@ if (signupForm) {
     });
     const data = await res.json();
     if (res.ok && data.token) {
-      handleLogin(data.token);
+      handleLogin(data.token, data.user?.role);
     } else {
       alert(data.message || 'Erro no registo');
     }
@@ -98,7 +102,7 @@ if (signinForm) {
     });
     const data = await res.json();
     if (res.ok && data.token) {
-      handleLogin(data.token);
+      handleLogin(data.token, data.user?.role);
     } else {
       alert(data.message || 'Erro no login');
     }
@@ -139,6 +143,7 @@ if (resetForm) {
 toggleNav();
 renderReferralTag();
 
+const storedRole = localStorage.getItem('role');
 if (authToken && window.location.pathname !== '/') {
-  window.location.href = '/';
+  window.location.href = storedRole === 'admin' ? '/admin.html' : '/';
 }

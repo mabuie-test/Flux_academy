@@ -2,8 +2,10 @@ const apiBase = '/api';
 let authToken = localStorage.getItem('token') || '';
 
 function syncNav() {
+  const role = localStorage.getItem('role');
   document.querySelectorAll('.anon-only').forEach((el) => (el.style.display = authToken ? 'none' : 'inline-flex'));
   document.querySelectorAll('.auth-only').forEach((el) => (el.style.display = authToken ? 'inline-flex' : 'none'));
+  document.querySelectorAll('.admin-only').forEach((el) => (el.style.display = role === 'admin' ? 'inline-flex' : 'none'));
 }
 
 function captureReferralAttribution() {
@@ -65,6 +67,7 @@ if (logout) {
   logout.onclick = () => {
     authToken = '';
     localStorage.removeItem('token');
+    localStorage.removeItem('role');
     syncNav();
     window.location.href = '/login.html';
   };
@@ -240,6 +243,10 @@ async function loadAffiliate() {
           <div><p class="muted">Liberado</p><h4>${data.totals.approved} MZN</h4></div>
           <div><p class="muted">Pago</p><h4>${data.totals.paid} MZN</h4></div>
         </div>
+      <div class="grid metrics">
+        <div><p class="muted">Saldo disponível</p><h4>${data.available ?? 0} MZN</h4></div>
+        <div><p class="muted">Em pedido de levantamento</p><h4>${data.outstanding ?? 0} MZN</h4></div>
+      </div>
       <div class="stacked">
         <label>Número M-Pesa para receber</label>
         <input type="text" id="payout-mpesa" placeholder="84/85xxxxxxx" />

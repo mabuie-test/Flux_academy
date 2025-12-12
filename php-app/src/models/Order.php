@@ -65,7 +65,7 @@ class Order
 
     public static function listAllWithInvoices(): array
     {
-        $sql = 'SELECT o.*, u.name as user_name, u.email as user_email, u.referral_code, u.referred_by, i.numero as invoice_numero, i.estado as invoice_estado,i.valor_total, i.id as invoice_id FROM orders o LEFT JOIN invoices i ON i.id = o.invoice_id LEFT JOIN users u ON u.id = o.user_id ORDER BY o.id DESC';
+        $sql = 'SELECT o.*, u.name as user_name, u.email as user_email, u.referral_code, u.referred_by, i.numero as invoice_numero, i.estado as invoice_estado, i.valor_total, i.id as invoice_id, i.comprovativo, i.vencimento FROM orders o LEFT JOIN invoices i ON i.id = o.invoice_id LEFT JOIN users u ON u.id = o.user_id ORDER BY o.id DESC';
         $stmt = Database::pdo()->query($sql);
         return $stmt->fetchAll();
     }

@@ -136,6 +136,7 @@ class AdminController
             'invoices' => (int) $pdo->query('SELECT COUNT(*) FROM invoices')->fetchColumn(),
             'paid' => (float) $pdo->query("SELECT COALESCE(SUM(valor_total),0) FROM invoices WHERE estado='PAGA'")->fetchColumn(),
             'pending' => (float) $pdo->query("SELECT COALESCE(SUM(valor_total),0) FROM invoices WHERE estado!='PAGA'")->fetchColumn(),
+            'payouts_pending' => (float) $pdo->query("SELECT COALESCE(SUM(valor),0) FROM affiliate_payouts WHERE status IN ('SOLICITADO','APROVADO')")->fetchColumn(),
         ];
         $statusBreakdown = $pdo->query("SELECT estado, COUNT(*) as total FROM orders GROUP BY estado")->fetchAll();
         $trend = $pdo->query("SELECT DATE_FORMAT(created_at, '%Y-%m') as mes, COALESCE(SUM(valor_total),0) as total FROM invoices WHERE estado='PAGA' GROUP BY mes ORDER BY mes DESC LIMIT 6")->fetchAll();

@@ -25,6 +25,13 @@ class AffiliatePayout
         return Database::pdo()->query($sql)->fetchAll();
     }
 
+    public static function outstandingForUser(int $userId): float
+    {
+        $stmt = Database::pdo()->prepare("SELECT COALESCE(SUM(valor),0) FROM affiliate_payouts WHERE user_id = :uid AND status IN ('SOLICITADO','APROVADO')");
+        $stmt->execute([':uid' => $userId]);
+        return (float) $stmt->fetchColumn();
+    }
+
     public static function updateStatus(int $payoutId, string $status, int $adminId, ?string $notes = null): void
     {
         $stmt = Database::pdo()->prepare('UPDATE affiliate_payouts SET status = :status, notes = :notes, processed_by = :admin, processed_at = NOW() WHERE id = :id');

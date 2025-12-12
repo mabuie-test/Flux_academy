@@ -186,7 +186,16 @@ class OrderController
         $commissions = AffiliateCommission::listForCode($code);
         $totals = AffiliateCommission::totalsForCode($code);
         $payouts = AffiliatePayout::listForUser($user['id']);
-        Response::json(['commissions' => $commissions, 'totals' => $totals, 'payouts' => $payouts, 'code' => $code]);
+        $outstanding = AffiliatePayout::outstandingForUser($user['id']);
+        $available = max(0, AffiliateCommission::totalAvailableForCode($code) - $outstanding);
+        Response::json([
+            'commissions' => $commissions,
+            'totals' => $totals,
+            'payouts' => $payouts,
+            'code' => $code,
+            'available' => $available,
+            'outstanding' => $outstanding,
+        ]);
     }
 
     public static function requestPayout(): void
@@ -201,7 +210,9 @@ class OrderController
         $metodo = $body['metodo'] ?? 'mpesa';
         $notes = $body['notes'] ?? null;
         $mpesa = $body['mpesa'] ?? null;
-        $available = AffiliateCommission::totalAvailableForCode($code);
+        $outstanding = AffiliatePayout::outstandingForUser($user['id']);
+        $approved = AffiliateCommission::totalAvailableForCode($code);
+        $available = max(0, $approved - $outstanding);
         if ($available <= 0) {
             Response::json(['message' => 'Sem saldo disponível para levantamento'], 400);
             return;
